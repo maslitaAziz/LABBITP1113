@@ -616,7 +616,7 @@ A2(){
     const r = done ? gradeA2Row(i) : null;
     const cls = done ? (r.type && r.decl ? "right" : "wrong") : "";
     const fb = done ? `<span class="fb ${r.type?"ok":"bad"}">${r.type?"Type correct":"Expected "+esc(accept[0])}</span><br><span class="fb ${r.decl?"ok":"bad"}">${r.decl?"Declaration valid":"Check the declaration syntax"}</span>` : "";
-    return `<tr class="${cls}"><td class="num">${i+1}</td><td>${esc(what)}</td><td style="min-width:150px">${sel("A2", t, DT_OPTIONS.map(x => [x, x]), "Type…")}</td><td style="min-width:220px">${txt("A2", d, "type name = value;")}</td>${done?`<td>${fb}</td>`:""}</tr>`;
+    return `<tr class="${cls}"><td class="num">${i+1}</td><td>${esc(what)}</td><td style="min-width:150px">${sel("A2", t, DT_OPTIONS.map(x => [x, x]), "Type…")}</td><td style="min-width:220px">${txt("A2", d, "type name;")}</td>${done?`<td>${fb}</td>`:""}</tr>`;
   }).join("");
   return `<section class="sheet">${header("A2", 2, "For each item, choose the most suitable data type and write one declaration statement using that type. Remember the semicolon.")}
   <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Data to store</th><th>Data type</th><th>Declaration</th>${done?"<th>Feedback</th>":""}</tr></thead><tbody>${rows}</tbody></table></div>
