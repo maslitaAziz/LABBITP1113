@@ -1,0 +1,1188 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>BITP 1113 Lab 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a lab workbook. Sticky course bar, a numbered stepper (activities really are a sequence), one activity sheet at a time. */
+:root{
+  --bg:#f3f5f8; --paper:#ffffff; --ink:#18212f; --muted:#5b6678; --line:#d6dce5;
+  --accent:#1d4ed8; --accent-ink:#ffffff; --accent-soft:#e3eafc;
+  --ok:#15803d; --ok-soft:#dcfce7; --bad:#b91c1c; --bad-soft:#fee2e2; --warn:#a16207; --warn-soft:#fef3c7;
+  --code-bg:#0f172a; --code-fg:#e2e8f0; --code-num:#64748b; --code-cmt:#86efac; --grid:#e5e9f0;
+  --f-display:"Familjen Grotesk","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1420; --paper:#161e2c; --ink:#e6ebf3; --muted:#9aa6b8; --line:#2a3548;
+  --accent:#7aa2ff; --accent-ink:#0b1220; --accent-soft:#1e2b48;
+  --ok:#4ade80; --ok-soft:#123222; --bad:#f87171; --bad-soft:#3b1717; --warn:#fbbf24; --warn-soft:#3a2c0c;
+  --code-bg:#0a0f1a; --code-fg:#e2e8f0; --code-num:#5b6678; --code-cmt:#86efac; --grid:#222c3d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1420; --paper:#161e2c; --ink:#e6ebf3; --muted:#9aa6b8; --line:#2a3548;
+  --accent:#7aa2ff; --accent-ink:#0b1220; --accent-soft:#1e2b48;
+  --ok:#4ade80; --ok-soft:#123222; --bad:#f87171; --bad-soft:#3b1717; --warn:#fbbf24; --warn-soft:#3a2c0c;
+  --code-bg:#0a0f1a; --code-fg:#e2e8f0; --code-num:#5b6678; --code-cmt:#86efac; --grid:#222c3d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--line)}
+.bar-in{max-width:960px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.course{font-family:var(--f-display);font-weight:700;letter-spacing:.01em}
+.course small{display:block;font-family:var(--f-body);font-weight:400;color:var(--muted);font-size:13px}
+.who{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--muted)}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.info{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+main{max-width:960px;margin:0 auto;padding-inline:16px;padding-block:20px 60px;display:grid;gap:18px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(26px,4vw,34px)}
+h2{font-size:24px}
+h3{font-size:17px}
+p{margin:0}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:22px clamp(16px,3vw,28px);display:grid;gap:16px;min-width:0}
+.lede{color:var(--muted);max-width:68ch}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+/* gate */
+.gate{max-width:560px;margin:4vh auto 0;width:100%}
+.field{display:grid;gap:6px}
+.field label{font-weight:600}
+.hint{font-size:13px;color:var(--muted)}
+.err{font-size:13px;color:var(--bad);font-weight:600}
+input[type=text],input[type=number],select,textarea{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+input.code,textarea.code{font-family:var(--f-mono);font-size:14px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input:disabled,select:disabled,textarea:disabled{opacity:.75;cursor:not-allowed}
+.btn{font:inherit;font-weight:700;border-radius:8px;padding:9px 16px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{padding:5px 10px;font-size:14px;font-weight:600}
+.btn.danger{border-color:var(--bad);background:var(--bad);color:var(--paper)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+/* stepper */
+.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;list-style:none;margin:0;padding:0}
+.step button{width:100%;font:inherit;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer;color:var(--ink);display:grid;gap:2px;min-height:62px}
+.step .n{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.step .t{font-weight:600;font-size:14px;line-height:1.25}
+.step.done button{border-color:var(--ok);background:var(--ok-soft)}
+.step.done .n{color:var(--ok)}
+.step.current button{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.step.locked button{color:var(--muted);cursor:not-allowed;background:var(--bg)}
+@media (max-width:640px){.steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.ps-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.ps-tab{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left;display:grid;gap:1px}
+.ps-tab small{font-weight:400;color:var(--muted);font-size:12.5px}
+.ps-tab[aria-selected=true]{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.ps-tab.ok{background:var(--ok-soft)}
+textarea.codebox{min-height:280px;tab-size:4;line-height:1.5;white-space:pre;overflow-x:auto}
+.ipo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:700px){.ipo{grid-template-columns:1fr}}
+.stepnum{font-family:var(--f-mono);font-size:12px;color:var(--accent);font-weight:600;letter-spacing:.05em}
+.run{margin:0;font-family:var(--f-mono);font-size:13.5px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 12px;white-space:pre;overflow-x:auto}
+.dl{display:flex;flex-wrap:wrap;gap:12px;align-items:center;border:1px solid var(--accent);background:var(--accent-soft);border-radius:8px;padding:14px 16px}
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--bg);font-weight:700}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-mono);color:var(--muted);width:36px}
+code,.mono{font-family:var(--f-mono);font-size:.92em}
+td code{background:var(--accent-soft);color:var(--ink);padding:2px 6px;border-radius:5px;white-space:nowrap}
+tr.right td{background:var(--ok-soft)}
+tr.wrong td{background:var(--bad-soft)}
+.fb{font-size:13px;font-weight:600}
+.fb.ok{color:var(--ok)} .fb.bad{color:var(--bad)}
+/* code listing */
+.listing{background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:12px 0;overflow-x:auto;font-family:var(--f-mono);font-size:14px;line-height:1.6}
+.listing div{white-space:pre;padding-inline:14px}
+.listing .ln{color:var(--code-num);display:inline-block;width:2.4em;user-select:none}
+.snip{margin:0;font-family:var(--f-mono);font-size:13.5px;background:var(--code-bg);color:var(--code-fg);border-radius:6px;padding:6px 10px;white-space:pre;overflow-x:auto}
+.kbd{font-size:14px;color:var(--muted);margin-top:4px}
+.kbd .mono{color:var(--ink);background:var(--warn-soft);padding:1px 6px;border-radius:4px}
+.ask{margin-top:6px;font-weight:600}
+.vars{display:grid;gap:6px}
+select.code{font-family:var(--f-mono);font-size:14px}
+.recap{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.recap div{border-left:3px solid var(--accent);padding:4px 12px;font-size:15px}
+.recap b{display:block;font-family:var(--f-display)}
+.note{background:var(--warn-soft);color:var(--ink);border-radius:8px;padding:10px 14px;font-size:15px}
+.note.info{background:var(--accent-soft)}
+.note.ok{background:var(--ok-soft)}
+.submit-zone{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-top:1px dashed var(--line);padding-top:14px}
+.count{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.score{font-family:var(--f-display);font-size:22px;font-weight:700}
+/* flowchart */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tab{font:inherit;font-weight:600;background:none;border:0;border-bottom:3px solid transparent;padding:8px 14px;color:var(--muted);cursor:pointer}
+.tab[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent)}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tool{font:inherit;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tool svg{width:22px;height:16px}
+.tool[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tool:disabled{opacity:.45;cursor:not-allowed}
+.canvas-wrap{border:1px solid var(--line);border-radius:8px;overflow:auto;background:var(--paper);max-height:72vh}
+#fc{display:block;width:100%;min-width:520px;touch-action:none;user-select:none}
+#fc .gridline{stroke:var(--grid)}
+#fc .shape{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+#fc .shape.term{fill:var(--accent-soft)}
+#fc .node.sel .shape{stroke:var(--accent);stroke-width:3}
+#fc .node.src .shape{stroke:var(--ok);stroke-width:3;stroke-dasharray:6 4}
+#fc text{fill:var(--ink);font-family:var(--f-body);font-size:15px;pointer-events:none}
+#fc .link{stroke:var(--ink);stroke-width:2;fill:none}
+#fc .link.sel{stroke:var(--accent);stroke-width:3}
+#fc .hit{stroke:transparent;stroke-width:14;fill:none;cursor:pointer}
+#fc .node{cursor:grab}
+#fc .arrowhead{fill:var(--ink)}
+#fc .lbl-bg{fill:var(--paper)}
+.label-edit{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center}
+.drop{border:2px dashed var(--line);border-radius:8px;padding:22px;text-align:center;color:var(--muted);display:grid;gap:10px;justify-items:center}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.preview-img{max-height:420px;border:1px solid var(--line);border-radius:8px}
+.checklist{display:grid;gap:4px;font-size:15px;list-style:none;padding:0;margin:0}
+.checklist li::before{content:"○ ";color:var(--muted)}
+.checklist li.ok::before{content:"● ";color:var(--ok)}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--warn-soft);border-radius:8px;padding:8px 12px;font-size:15px}
+.rating{display:flex;gap:6px;flex-wrap:wrap}
+.rating label{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;cursor:pointer;font-size:14px}
+.rating input{accent-color:var(--accent)}
+.receipt{font-family:var(--f-mono);font-size:15px;background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto}
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.results div{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.results span{display:block;font-size:13px;color:var(--muted)}
+.results b{font-family:var(--f-display);font-size:20px;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="bar"><div class="bar-in">
+  <div class="course">BITP 1113 Programming Technique<small>Lab 3 · Basic Elements of C++</small></div>
+  <div class="who"><span id="whoName"></span><span id="syncChip" class="chip">Not started</span></div>
+</div></header>
+
+<main id="app">
+  <!-- Gate -->
+  <section id="gate" class="sheet gate" aria-labelledby="gateTitle">
+    <div class="eyebrow">Before you start</div>
+    <h1 id="gateTitle">Lab 3: Basic Elements of C++</h1>
+    <p class="lede">Eleven activities on identifiers, data types, declaration and initialization, constants, operators, input with cin, output formatting, debugging, and problem solving with IPO, pseudocode and flowcharts. Each activity opens after you submit the one before it. Your answers are recorded under your matric number.</p>
+    <form id="gateForm" class="sheet" style="padding:0;border:0" novalidate>
+      <div class="field">
+        <label for="inName">Full name</label>
+        <input id="inName" type="text" autocomplete="name" placeholder="As in your student ID">
+        <div id="errName" class="err" hidden></div>
+      </div>
+      <div class="field">
+        <label for="inMatric">Matric number</label>
+        <input id="inMatric" type="text" class="code" autocomplete="off" spellcheck="false" placeholder="B032410123">
+        <div class="hint" id="matricHint"></div>
+        <div id="errMatric" class="err" hidden></div>
+      </div>
+      <div class="field">
+        <label for="inGroup">Section / group</label>
+        <select id="inGroup"></select>
+        <div id="errGroup" class="err" hidden></div>
+      </div>
+      <div class="row"><button class="btn" type="submit" id="startBtn">Start the lab</button></div>
+      <div id="resumeNote" class="note info" hidden></div>
+    </form>
+  </section>
+
+  <!-- Workbook -->
+  <section id="work" hidden>
+    <ol class="steps" id="steps" aria-label="Activities"></ol>
+  </section>
+  <div id="panels" hidden></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+/* ============ CONFIG: edit these before hosting ============ */
+const CONFIG = {
+  // Paste your Google Apps Script web app URL (ends with /exec). Leave empty for preview mode.
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwnitbd7XXc-RlYvG0QK2lwBjhTpZ0-0ibtZRctvvjb_zp_jRVS0ks-0k_SkDBmSlMk/exec",
+  LAB_ID: "BITP1113-LAB3",
+  MATRIC_PATTERN: "^[A-Za-z][0-9]{9}$",
+  MATRIC_HINT: "One letter followed by 9 digits, e.g. B032410123",
+  // Leave empty [] to make students type their section freely.
+  GROUPS: ["S1G1", "S1G2", "S3G1", "S3G2"]
+};
+/* =========================================================== */
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+/* ---------------- Activities ---------------- */
+const ID_ITEMS = [
+  ["total_marks","valid"],["2ndPlace","digit"],["float","keyword"],["student name","space"],["_count","valid"],
+  ["rate%","special"],["Main","valid"],["cgpa2026","valid"],["first-name","special"],["RM_price","valid"]
+];
+const REASONS = {valid:"Valid identifier", digit:"Invalid: starts with a digit", keyword:"Invalid: reserved keyword", space:"Invalid: contains a space", special:"Invalid: special character"};
+const DT_ITEMS = [
+  ["Number of students in a class", ["int"]],
+  ["A student's CGPA (e.g. 3.67)", ["double","float"]],
+  ["A grade letter (A, B, C)", ["char"]],
+  ["Whether a student has passed", ["bool"]],
+  ["Price of a nasi lemak in RM", ["double","float"]],
+  ["SST rate of 6% that must never change", ["const double","const float"]]
+];
+const DT_OPTIONS = ["int","double","float","char","bool","const double","const float","void"];
+const PR_ITEMS = [
+  ["cout << a / b;", "3"], ["cout << a % b;", "1"], ["cout << a / 2.0;", "3.5"], ["cout << a + b * c;", "17"],
+  ["cout << (a + b) * c;", "45"], ["cout << c % a;", "5"], ["int x = a++;", {x:"7", a:"8"}],
+  ["int y = ++c * b;", {y:"12", c:"6"}], ["b *= a + 1;", {b:"16"}], ["cout << a - b * c / 2;", "2"]
+];
+const BUG_CODE = [
+  '#include <iostream>','using namespace std','','int Main()','{','    const double RATE = 0.06;','    int quantity;',
+  '    double price, total;','','    cout << "Enter quantity and price: ";','    cin << quantity >> price;',
+  '    total = quantity * price;','    RATE = 0.08;','    total = total + total * RATE;',
+  '    cout << "Total: RM" << fixed << setprecision(2) << Total << endl;','    return 0','}'
+];
+const BUG_LINES = {1:"Missing #include <iomanip> for setprecision", 2:"Missing semicolon after using namespace std", 4:"main must be lowercase", 11:"cin uses >>, not <<", 13:"A const cannot be changed", 15:"Total is undeclared (C++ is case-sensitive)", 16:"Missing semicolon after return 0"};
+const TOPICS = ["Program structure","Identifiers & keywords","Data types","Declaration & initialization","const vs #define","cin / cout","Reading strings with getline","Arithmetic & assignment operators","Increment / decrement","Operator precedence","Formatting output (iomanip)","IPO analysis","Pseudocode","Flowcharts","Writing a complete C++ program"];
+
+const ACTS = [
+  {id:"A1", title:"Valid identifiers", short:"Identifiers"},
+  {id:"A2", title:"Choose the data type", short:"Data types"},
+  {id:"DI", title:"Declaration or initialization?", short:"Declare vs initialize"},
+  {id:"CONST", title:"const or #define?", short:"Constants"},
+  {id:"A3", title:"Predict the output", short:"Operators"},
+  {id:"CIN", title:"Reading input with cin", short:"cin & strings"},
+  {id:"IOM", title:"Formatting output with iomanip", short:"iomanip"},
+  {id:"A4", title:"Bug hunt", short:"Bug hunt"},
+  {id:"A5", title:"Flowchart warm-up", short:"Flowchart warm-up"},
+  {id:"PS", title:"Solve it: IPO, pseudocode, flowchart", short:"Problem solving"},
+  {id:"A6", title:"Exit ticket", short:"Exit ticket"}
+];
+
+/* ---- Quiz-style activities: mcq (select), text (typed, checked), vars (several typed values) ---- */
+const SP = "␣";
+const QUIZ = {
+  DI: {
+    lede: "A <b>declaration</b> creates a variable and gives it a type. An <b>initialization</b> gives it its first value in the same statement. An <b>assignment</b> changes the value of a variable that already exists.",
+    note: `<code>int count;</code> declaration only &nbsp;·&nbsp; <code>int count = 0;</code> declaration with initialization &nbsp;·&nbsp; <code>count = 5;</code> assignment`,
+    colQ: "Statement", max: 13,
+    items: [
+      {k:"mcq", q:"s1", code:"int age;", opts:"cls", ans:0},
+      {k:"mcq", q:"s2", code:"int age = 20;", opts:"cls", ans:1},
+      {k:"mcq", q:"s3", code:"age = 21;", opts:"cls", ans:2},
+      {k:"mcq", q:"s4", code:"double price, total;", opts:"cls", ans:0},
+      {k:"mcq", q:"s5", code:"const double SST = 0.06;", opts:"cls", ans:1},
+      {k:"mcq", q:"s6", code:"char grade = 'A';", opts:"cls", ans:1},
+      {k:"mcq", q:"s7", code:"total = price * 2;", opts:"cls", ans:2},
+      {k:"mcq", q:"s8", code:"const int MAX;", opts:"cls", ans:3, why:"A const must be initialized when it is declared."},
+      {k:"mcq", q:"s9", code:"float rate = ;", opts:"cls", ans:3, why:"An initializer needs a value after =."},
+      {k:"mcq", q:"b1", code:"int count, sum = 0;", ask:"Which variable(s) are initialized?", opts:["Both count and sum","Only sum","Only count","Neither"], ans:1, why:"The = 0 belongs to sum only. count is declared but has no value."},
+      {k:"mcq", q:"b2", code:"int x;\ncout << x;", ask:"What is displayed?", opts:["0","An unpredictable (garbage) value","The letter x","Nothing"], ans:1, why:"A local variable that is not initialized holds whatever was in that memory location."},
+      {k:"text", q:"b3", code:"int count;\ncount = 0;", ask:"Rewrite these two statements as one statement that declares and initializes count.", ph:"Type one statement", re:/^int\s+count\s*=\s*0\s*;$/, expect:"int count = 0;"},
+      {k:"mcq", q:"b4", code:"const double PI = 3.14159;", ask:"Why must a const be given its value in the declaration?", opts:["Its value cannot be assigned later","The compiler needs to know its size","It makes the variable global","It is optional, not a rule"], ans:0, why:"A const cannot appear on the left of = after it is declared."}
+    ],
+    optSets: {cls: ["Declaration only","Declaration + initialization","Assignment","Invalid statement"]}
+  },
+  CONST: {
+    lede: "C++ gives two ways to define a constant. A <b>defined constant</b> uses the preprocessor: <code>#define NAME value</code>. A <b>memory constant</b> uses the type qualifier <code>const</code>: <code>const type NAME = value;</code>",
+    note: `<code>#define</code> is placed in the preprocessor directive area, has no type, no <code>=</code> and no semicolon; the preprocessor replaces the name with its text before compiling. <code>const</code> is a real variable with a type and a scope, must be initialized, and ends with a semicolon.`,
+    colQ: "Statement or question", max: 14,
+    items: [
+      {k:"mcq", q:"k1", code:"#define SST_RATE 0.06", opts:"cls", ans:0},
+      {k:"mcq", q:"k2", code:"const double SST_RATE = 0.06;", opts:"cls", ans:1},
+      {k:"mcq", q:"k3", code:"#define MAX = 50;", opts:"cls", ans:2, why:"The = and ; become part of the replacement text, so MAX is replaced with \"= 50;\"."},
+      {k:"mcq", q:"k4", code:"const int MAX_SEAT = 120;", opts:"cls", ans:1},
+      {k:"mcq", q:"k5", code:"#define PI 3.14159", opts:"cls", ans:0},
+      {k:"mcq", q:"k6", code:"const float RATE;", opts:"cls", ans:2, why:"A const must be initialized when it is declared."},
+      {k:"mcq", q:"k7", ask:"Which one has a data type that the compiler checks?", opts:"cmp", ans:1},
+      {k:"mcq", q:"k8", ask:"Which one is replaced as text before the program is compiled?", opts:"cmp", ans:0},
+      {k:"mcq", q:"k9", ask:"Which one ends with a semicolon?", opts:"cmp", ans:1},
+      {k:"mcq", q:"k10", ask:"Which one can be declared inside main() so that only main() can use it?", opts:"cmp", ans:1, why:"A const follows scope rules. A #define has no scope; it applies from its line to the end of the file."},
+      {k:"mcq", q:"k11", ask:"Whose value can never be changed while the program runs?", opts:"cmp", ans:2},
+      {k:"mcq", q:"k12", code:"#define RATE 0.06\n...\nRATE = 0.08;", ask:"What happens?", opts:["Compile error","RATE becomes 0.08","RATE stays 0.06 and the line is skipped","Runtime error"], ans:0, why:"After replacement the line reads 0.06 = 0.08; which cannot compile."},
+      {k:"text", q:"k13", ask:"Write a memory constant named MAX_STUDENT with the value 50.", ph:"Type one statement", re:/^const\s+int\s+MAX_STUDENT\s*=\s*50\s*;$/, expect:"const int MAX_STUDENT = 50;"},
+      {k:"text", q:"k14", ask:"Write a defined constant named TICKET_PRICE with the value 15.00.", ph:"Type one line", re:/^#\s*define\s+TICKET_PRICE\s+15(\.0+)?$/, expect:"#define TICKET_PRICE 15.00"}
+    ],
+    optSets: {cls: ["Defined constant (#define)","Memory constant (const)","Not a valid constant definition"], cmp: ["#define","const","Both","Neither"]}
+  },
+  CIN: {
+    lede: "Work out what each variable holds after the input is read. ⏎ means the user pressed Enter. For text answers, type the value without quotes.",
+    note: `<code>cin &gt;&gt;</code> skips leading spaces and stops reading at the next space or Enter. <code>getline(cin, s)</code> reads the whole line, spaces included. After <code>cin &gt;&gt;</code>, the Enter key stays in the input; a following <code>getline</code> reads it as an empty line unless you call <code>cin.ignore()</code> first. The <code>string</code> type needs <code>#include &lt;string&gt;</code>.`,
+    colQ: "Code and keyboard input", max: 9,
+    items: [
+      {k:"vars", q:"c1", code:"string name;\ncin >> name;", input:"Ahmad Faiz⏎", vars:{name:"Ahmad"}, str:true, why:"cin >> stops at the space."},
+      {k:"vars", q:"c2", code:"string name;\ngetline(cin, name);", input:"Ahmad Faiz⏎", vars:{name:"Ahmad Faiz"}, str:true, why:"getline reads the whole line."},
+      {k:"mcq", q:"c3", code:"int age;\nstring name;\ncin >> age;\ngetline(cin, name);", input:"20⏎Siti Aminah⏎", ask:"What does name hold?", opts:["Siti Aminah","An empty string","20","Siti"], ans:1, why:"getline reads the Enter left behind after 20, so name is empty."},
+      {k:"mcq", q:"c4", code:"cin >> age;\n/* ??? */\ngetline(cin, name);", ask:"Which statement at /* ??? */ fixes the problem in question 3?", opts:["cin.ignore();","cin >> name;","cout << endl;","name = \"\";"], ans:0, why:"cin.ignore() discards the leftover Enter."},
+      {k:"vars", q:"c5", code:"int a, b;\ncin >> a >> b;", input:"12 30⏎", vars:{a:"12", b:"30"}},
+      {k:"vars", q:"c6", code:"char c;\nint n;\ncin >> c >> n;", input:"B7⏎", vars:{c:"B", n:"7"}, str:true, why:"A char reads exactly one character, then n reads 7."},
+      {k:"vars", q:"c7", code:"int n;\ncin >> n;", input:"3.9⏎", vars:{n:"3"}, why:"An int stops reading at the decimal point."},
+      {k:"mcq", q:"c8", code:"string course;", ask:"Which header file is needed for the string type?", opts:["#include <string>","#include <iomanip>","#include <cmath>","#include <cstring> only"], ans:0},
+      {k:"text", q:"c9", ask:"Write one statement that reads a full name with spaces, e.g. Nur Aisyah binti Ali, into a string variable named fullName.", ph:"Type one statement", re:/^getline\s*\(\s*cin\s*,\s*fullName\s*\)\s*;$/, expect:"getline(cin, fullName);"}
+    ]
+  },
+  IOM: {
+    lede: `Choose the exact output of each statement. ${SP} means one space. Each statement runs on its own, with no earlier manipulators in effect.`,
+    note: `Requires <code>#include &lt;iomanip&gt;</code>. <code>setw(n)</code> sets the width of the <b>next</b> item only, padding on the left. <code>setfill(c)</code> changes the padding character. <code>fixed</code> with <code>setprecision(n)</code> shows exactly n decimal places, rounded. <code>setprecision</code> and <code>fixed</code> stay in effect until changed.`,
+    colQ: "Statement", max: 9,
+    items: [
+      {k:"mcq", q:"i1", code:"cout << setw(6) << 42;", opts:[`${SP}${SP}${SP}${SP}42`,`42${SP}${SP}${SP}${SP}`,`000042`,`42`], ans:0},
+      {k:"mcq", q:"i2", code:"cout << fixed << setprecision(2) << 3.14159;", opts:["3.14","3.1","3.14159","3.15"], ans:0},
+      {k:"mcq", q:"i3", code:"cout << fixed << setprecision(1) << 2.76;", opts:["2.7","2.8","2.76","3"], ans:1, why:"The value is rounded, not cut off."},
+      {k:"mcq", q:"i4", code:"cout << setfill('*') << setw(5) << 7;", opts:["****7","7****","*****7","7"], ans:0},
+      {k:"mcq", q:"i5", code:"cout << setw(3) << 12345;", opts:["12345","123","345",`${SP}${SP}${SP}12345`], ans:0, why:"setw never cuts a value; a wider value is printed in full."},
+      {k:"mcq", q:"i6", code:"cout << setw(4) << 1 << 2;", opts:[`${SP}${SP}${SP}12`,`${SP}${SP}12`,`${SP}${SP}${SP}1${SP}${SP}${SP}2`,"12"], ans:0, why:"setw applies only to the next item, 1. Then 2 follows with no padding."},
+      {k:"mcq", q:"i7", code:"cout << setprecision(3) << 3.14159;", opts:["3.14","3.142","3.141","3.1"], ans:0, why:"Without fixed, setprecision counts significant digits, not decimal places."},
+      {k:"mcq", q:"i8", code:"cout << fixed << setprecision(2) << 5;", opts:["5","5.00","5.0","05"], ans:0, why:"5 is an int. setprecision only affects floating-point values."},
+      {k:"text", q:"i9", ask:"Write one cout statement that displays the double variable amount with exactly 2 decimal places in a field 10 characters wide.", ph:"cout << ...;", check: v => /^cout\s*<</.test(v) && /fixed/.test(v) && /setprecision\s*\(\s*2\s*\)/.test(v) && /setw\s*\(\s*10\s*\)\s*<<\s*amount/.test(v) && /;\s*$/.test(v), expect:"cout << fixed << setprecision(2) << setw(10) << amount;"}
+    ]
+  }
+};
+/* ---- Problem solving: 3 problems, each IPO + pseudocode + flowchart ---- */
+const PROBLEMS = [
+  {id:"P1", title:"BMI calculator", cin:"cin >> with two numbers on one line",
+   text:"Write a program that asks the user to enter their <b>weight</b> in kg and <b>height</b> in metres on one line. It calculates the Body Mass Index using <code>BMI = weight ÷ (height × height)</code> and displays the BMI with 1 decimal place.",
+   run:"Enter weight (kg) and height (m): 68 1.70\nYour BMI is 23.5"},
+  {id:"P2", title:"Test average", cin:"cin >> followed by getline (needs cin.ignore)",
+   text:"Write a program that reads a student's <b>matric number</b> (no spaces), then the student's <b>full name</b> (with spaces), then <b>three test marks</b> entered on one line. It calculates the average of the three marks and displays the name, matric number and average with 2 decimal places.",
+   run:"Matric number: B032410123\nFull name: Nur Aisyah binti Ali\nThree marks: 78 85 90\nNur Aisyah binti Ali (B032410123)\nAverage: 84.33"},
+  {id:"P3", title:"Cinema ticket", cin:"getline, then a char and an int typed together",
+   text:"A cinema charges a fixed <b>RM15.00</b> per ticket (use a constant). Write a program that reads the <b>movie title</b> (may contain spaces), the <b>seat</b> as a row letter followed by a seat number typed together (e.g. <code>C12</code>), and the <b>number of tickets</b>. It calculates the total price and displays the movie, seat and total in RM with 2 decimal places.",
+   run:"Movie title: Ola Bola 2\nSeat (row and number): C12\nNumber of tickets: 3\nMovie: Ola Bola 2  Seat: C12\nTotal: RM 45.00"}
+];
+const PS_FIELDS = [["in","Input"],["proc","Process"],["out","Output"],["pseudo","Pseudocode"],["code","C++ code"],["run","Program output"]];
+/* ---- Automatic code checks (static checks on the code + the pasted output of a real run) ---- */
+const stripComments = c => String(c || "").replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
+const FMT = n => c => /#\s*include\s*<iomanip>/.test(c) && /\bfixed\b/.test(c) && new RegExp("setprecision\\s*\\(\\s*" + n + "\\s*\\)").test(c);
+const COMMON_CHECKS = [
+  ["Includes <iostream>", c => /#\s*include\s*<iostream>/.test(c)],
+  ["Uses namespace std (or std::)", c => /using\s+namespace\s+std\s*;/.test(c) || /std::/.test(c)],
+  ["Has int main()", c => /\bint\s+main\s*\(\s*(void)?\s*\)/.test(c)],
+  ["Reads input with cin", c => /\bcin\s*>>/.test(c) || /getline\s*\(\s*cin/.test(c)],
+  ["Displays output with cout", c => /\bcout\s*<</.test(c)],
+  ["Ends main with return 0;", c => /return\s+0\s*;/.test(c)]
+];
+const CODE_CHECKS = {
+  P1: [["Reads both numbers in one cin statement", c => /\bcin\s*>>\s*\w+\s*>>\s*\w+/.test(c)],
+       ["Shows 1 decimal place (iomanip, fixed, setprecision(1))", FMT(1)]],
+  P2: [["Reads the full name with getline", c => /getline\s*\(\s*cin\s*,\s*\w+\s*\)/.test(c)],
+       ["Uses cin.ignore() before getline", c => /cin\s*\.\s*ignore\s*\(/.test(c)],
+       ["Divides the total of the marks by 3", c => /\/\s*3(\.0*)?\b/.test(c)],
+       ["Shows 2 decimal places (iomanip, fixed, setprecision(2))", FMT(2)]],
+  P3: [["Reads the movie title with getline", c => /getline\s*\(\s*cin\s*,\s*\w+\s*\)/.test(c)],
+       ["Uses a constant for the ticket price", c => /\bconst\s+(double|float)\s+\w+\s*=\s*15/.test(c) || /#\s*define\s+\w+\s+15/.test(c)],
+       ["Uses a char variable for the row letter", c => /\bchar\s+\w+/.test(c)],
+       ["Shows 2 decimal places (iomanip, fixed, setprecision(2))", FMT(2)]]
+};
+const OUTPUT_CHECKS = {P1: ["23.5"], P2: ["84.33", "Nur Aisyah binti Ali"], P3: ["45.00", "C12"]};
+function codeChecks(p){
+  const a = act("PS").answers, c = stripComments(a[p + "code"]), out = String(a[p + "run"] || "").replace(/\s+/g, " ");
+  const list = [...COMMON_CHECKS, ...CODE_CHECKS[p]].map(([t, f]) => ({t, ok: !!c.trim() && f(c)}));
+  list.push({t: `Output from the sample run shows ${OUTPUT_CHECKS[p].map(x => '"' + x + '"').join(" and ")}`, ok: OUTPUT_CHECKS[p].every(x => out.includes(x)), out: true});
+  return list;
+}
+const CODE_MAX = ["P1","P2","P3"].reduce((n, p) => n + COMMON_CHECKS.length + CODE_CHECKS[p].length + 1, 0);
+function gradePS(){ return ["P1","P2","P3"].reduce((n, p) => n + codeChecks(p).filter(x => x.ok).length, 0); }
+const qOpts = (A, it) => typeof it.opts === "string" ? QUIZ[A].optSets[it.opts] : it.opts;
+const stripQ = v => String(v ?? "").trim().replace(/^["']|["']$/g, "").replace(/\s+/g, " ");
+const normCode = v => String(v ?? "").trim().replace(/\s+/g, " ");
+function quizItemOk(A, it){
+  const a = act(A).answers;
+  if (it.k === "mcq") return a[it.q] === String(it.ans);
+  if (it.k === "text"){ const v = normCode(a[it.q]); return it.re ? it.re.test(v) : it.check(v); }
+  return Object.entries(it.vars).every(([v, exp]) => it.str ? stripQ(a[`${it.q}${v}`]) === exp : numEq(a[`${it.q}${v}`], exp));
+}
+function quizExpect(A, it){
+  if (it.k === "mcq") return qOpts(A, it)[it.ans];
+  if (it.k === "text") return it.expect;
+  return Object.entries(it.vars).map(([v, e]) => `${v} = ${e}`).join(", ");
+}
+function quizKeys(A){ return QUIZ[A].items.flatMap(it => it.k === "vars" ? Object.keys(it.vars).map(v => `${it.q}${v}`) : [it.q]); }
+function gradeQuiz(A){ return QUIZ[A].items.filter(it => quizItemOk(A, it)).length; }
+function renderQuiz(A){
+  const Q = QUIZ[A], done = locked(A), a = act(A);
+  const rows = Q.items.map((it, i) => {
+    const codeBlock = it.code ? `<pre class="snip">${esc(it.code)}</pre>` : "";
+    const inBlock = it.input ? `<div class="kbd">Input: <span class="mono">${esc(it.input)}</span></div>` : "";
+    const ask = it.ask ? `<div class="ask">${esc(it.ask)}</div>` : "";
+    let ctl;
+    if (it.k === "mcq") ctl = sel(A, it.q, qOpts(A, it).map((o, j) => [String(j), o]), "Choose…").replace("<select ", '<select class="code" ');
+    else if (it.k === "text") ctl = txt(A, it.q, it.ph || "", "code");
+    else ctl = `<div class="vars">${Object.keys(it.vars).map(v => `<label class="row" style="gap:6px;flex-wrap:nowrap"><span class="mono">${v} =</span>${txt(A, `${it.q}${v}`, "", "code")}</label>`).join("")}</div>`;
+    const ok = done && quizItemOk(A, it);
+    const fb = done ? `<span class="fb ${ok?"ok":"bad"}">${ok?"Correct":"Answer: "+esc(quizExpect(A, it))}</span>${it.why?`<div class="hint">${esc(it.why)}</div>`:""}` : "";
+    return `<tr class="${done?(ok?"right":"wrong"):""}"><td class="num">${i+1}</td><td>${codeBlock}${inBlock}${ask}</td><td style="min-width:220px">${ctl}</td>${done?`<td style="min-width:160px">${fb}</td>`:""}</tr>`;
+  }).join("");
+  return `<section class="sheet">${header(A, 0, Q.lede)}
+  <div class="note info">${Q.note}</div>
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>${Q.colQ}</th><th>Your answer</th>${done?"<th>Feedback</th>":""}</tr></thead><tbody>${rows}</tbody></table></div>
+  ${submitZone(A)}</section>`;
+}
+function quizReadable(A){
+  const a = act(A).answers, out = {};
+  QUIZ[A].items.forEach((it, i) => {
+    const label = `${i+1}. ${(it.code || it.ask || "").replace(/\n/g, " ")}`.slice(0, 120);
+    let v;
+    if (it.k === "mcq") v = a[it.q] != null && a[it.q] !== "" ? qOpts(A, it)[+a[it.q]] : "";
+    else if (it.k === "text") v = a[it.q] || "";
+    else v = Object.keys(it.vars).map(x => `${x}=${a[`${it.q}${x}`] ?? ""}`).join(", ");
+    out[label] = `${v}${quizItemOk(A, it) ? " ✓" : " ✗"}`;
+  });
+  return out;
+}
+
+/* ---------------- State ---------------- */
+let S = null; // {name, matric, group, startedAt, cur, acts:{A1:{answers, log, openedAt, submittedAt, score, max, edits}}, fc:{nodes,links}, upload, queue:[]}
+const key = m => `${CONFIG.LAB_ID}:${m.toUpperCase()}`;
+function save(){ if (S) store.set(key(S.matric), S); }
+function migrate(st){
+  st.boards = st.boards || {}; st.uploads = st.uploads || {}; st.fcTabs = st.fcTabs || {};
+  if (st.fc){ st.boards.A5 = st.fc; delete st.fc; }
+  if (st.upload !== undefined){ if (st.upload) st.uploads.A5 = st.upload; delete st.upload; }
+  return st;
+}
+let FCB = "A5";            // flowchart board currently on screen
+let CUR = null;            // activity currently on screen
+const board = k => (S.boards[k] = S.boards[k] || {nodes:[], links:[]});
+const B = () => board(FCB);
+const rerender = () => goto(CUR);
+function act(id){ return S.acts[id] || (S.acts[id] = {answers:{}, log:[], edits:{}, openedAt:null}); }
+function unlockedIndex(){ let i = 0; while (i < ACTS.length && act(ACTS[i].id).submittedAt) i++; return i; }
+
+/* ---------------- Sync ---------------- */
+function setChip(){
+  const c = $("#syncChip");
+  if (!S){ c.className = "chip"; c.textContent = "Not started"; return; }
+  if (!CONFIG.SCRIPT_URL){ c.className = "chip warn"; c.textContent = "Preview mode: answers stay in this browser"; return; }
+  if (S.queue.length){ c.className = "chip warn"; c.textContent = `${S.queue.length} submission${S.queue.length>1?"s":""} waiting to send`; }
+  else { c.className = "chip ok"; c.textContent = "All answers recorded"; }
+}
+function send(event, extra = {}){
+  const p = {eventId: uid(), lab: CONFIG.LAB_ID, event, name: S.name, matric: S.matric, group: S.group,
+             clientTime: new Date().toISOString(), device: navigator.userAgent.slice(0, 120), ...extra};
+  if (!CONFIG.SCRIPT_URL){ setChip(); return; }
+  S.queue.push(p); save(); flush();
+}
+let flushing = false;
+async function flush(){
+  setChip();
+  if (!CONFIG.SCRIPT_URL || flushing || !S.queue.length) return;
+  flushing = true;
+  try{
+    while (S.queue.length){
+      const p = S.queue[0];
+      const r = await fetch(CONFIG.SCRIPT_URL, {method:"POST", body: JSON.stringify(p)});
+      const j = await r.json().catch(() => ({ok:false}));
+      if (!j.ok) throw new Error(j.error || "Server did not confirm");
+      S.queue.shift(); save(); setChip();
+    }
+  }catch(e){ setTimeout(() => { flushing = false; flush(); }, 8000); setChip(); return; }
+  flushing = false; setChip();
+}
+window.addEventListener("online", () => S && flush());
+
+/* ---------------- Gate ---------------- */
+function initGate(){
+  $("#matricHint").textContent = CONFIG.MATRIC_HINT;
+  const g = $("#inGroup");
+  if (CONFIG.GROUPS.length){
+    g.innerHTML = `<option value="">Select your section</option>` + CONFIG.GROUPS.map(x => `<option>${esc(x)}</option>`).join("");
+  } else {
+    const t = document.createElement("input"); t.type = "text"; t.id = "inGroup"; t.placeholder = "e.g. S1G2"; g.replaceWith(t);
+  }
+  const last = store.get(`${CONFIG.LAB_ID}:last`);
+  if (last){
+    const prev = store.get(key(last));
+    if (prev){ $("#inName").value = prev.name; $("#inMatric").value = prev.matric; $("#inGroup").value = prev.group;
+      const n = $("#resumeNote"); n.hidden = false; n.textContent = `Welcome back. Your progress on this device is saved; press Start to continue from Activity ${Math.min(unlockedIndexFor(prev)+1, ACTS.length)}.`; }
+  }
+  $("#gateForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("#inName").value.trim().replace(/\s+/g, " ");
+    const matric = $("#inMatric").value.trim().toUpperCase();
+    const group = $("#inGroup").value.trim();
+    let ok = true;
+    const show = (id, msg) => { const el = $(id); el.hidden = !msg; el.textContent = msg || ""; if (msg) ok = false; };
+    show("#errName", name.length < 3 ? "Enter your full name." : (/^[A-Za-z@'.\-\/ ]+$/.test(name) ? "" : "Use letters only in your name."));
+    show("#errMatric", !matric ? "Enter your matric number." : (new RegExp(CONFIG.MATRIC_PATTERN).test(matric) ? "" : `This does not look like a matric number. ${CONFIG.MATRIC_HINT}.`));
+    show("#errGroup", group ? "" : "Choose your section / group.");
+    if (!ok){ ($("#gate .err:not([hidden])").previousElementSibling || $("#inName")).focus?.(); return; }
+    const existing = store.get(key(matric));
+    if (existing){ S = migrate(existing); S.name = name; S.group = group; }
+    else { S = migrate({name, matric, group, startedAt: new Date().toISOString(), acts:{}, queue:[]}); }
+    store.set(`${CONFIG.LAB_ID}:last`, matric);
+    save();
+    if (!existing) send("session_start");
+    else flush();
+    openWorkbook();
+  });
+}
+function unlockedIndexFor(st){ let i = 0; while (i < ACTS.length && st.acts?.[ACTS[i].id]?.submittedAt) i++; return i; }
+
+function openWorkbook(){
+  $("#gate").hidden = true; $("#work").hidden = false; $("#panels").hidden = false;
+  $("#whoName").innerHTML = `<b>${esc(S.name)}</b> · <span class="mono">${esc(S.matric)}</span> · ${esc(S.group)}`;
+  setChip();
+  const i = unlockedIndex();
+  goto(i >= ACTS.length ? "done" : ACTS[i].id);
+}
+
+/* ---------------- Stepper & navigation ---------------- */
+function renderSteps(curId){
+  const ui = unlockedIndex();
+  $("#steps").innerHTML = ACTS.map((a, i) => {
+    const done = !!act(a.id).submittedAt, locked = i > ui;
+    const cls = done ? "done" : locked ? "locked" : "";
+    const status = done ? "Submitted" : locked ? "Locked" : "Open";
+    return `<li class="step ${cls} ${a.id===curId?"current":""}"><button type="button" data-go="${a.id}" ${locked?'disabled aria-disabled="true"':""} aria-label="Activity ${i+1}, ${esc(a.title)}, ${status}">
+      <span class="n">${String(i+1).padStart(2,"0")} · ${status}</span><span class="t">${esc(a.short)}</span></button></li>`;
+  }).join("");
+  $$("#steps [data-go]").forEach(b => b.addEventListener("click", () => goto(b.dataset.go)));
+}
+function goto(id){
+  CUR = id;
+  if (id === "A5") FCB = "A5";
+  if (id === "PS") FCB = S.psTab || "P1";
+  renderSteps(id);
+  const P = $("#panels");
+  if (id === "done"){ P.innerHTML = renderDone(); bindDone(); window.scrollTo({top:0}); return; }
+  const a = act(id);
+  if (!a.openedAt){ a.openedAt = new Date().toISOString(); save(); }
+  P.innerHTML = RENDER[id]();
+  bindActivity(id);
+  window.scrollTo({top:0});
+}
+
+/* ---------------- Rendering helpers ---------------- */
+const locked = id => !!act(id).submittedAt;
+const dis = id => locked(id) ? "disabled" : "";
+function val(id, q){ return act(id).answers[q] ?? ""; }
+function sel(id, q, opts, placeholder){
+  const v = val(id, q);
+  return `<select data-q="${q}" id="${id}-${q}" ${dis(id)}><option value="">${placeholder}</option>${opts.map(([k, t]) => `<option value="${esc(k)}" ${v===k?"selected":""}>${esc(t)}</option>`).join("")}</select>`;
+}
+function txt(id, q, ph = "", cls = "code", type = "text"){
+  return `<input type="${type}" data-q="${q}" id="${id}-${q}" class="${cls}" value="${esc(val(id, q))}" placeholder="${esc(ph)}" ${dis(id)} autocomplete="off" spellcheck="false">`;
+}
+function header(id, n, lede){
+  const a = ACTS.find(x => x.id === id);
+  return `<div><div class="eyebrow">Activity ${ACTS.indexOf(a) + 1} of ${ACTS.length}</div><h2>${esc(a.title)}</h2></div><p class="lede">${lede}</p>`;
+}
+function submitZone(id, extraNote = ""){
+  const a = act(id);
+  if (a.submittedAt){
+    const sc = a.max ? `<span class="score">${a.score} / ${a.max}</span>` : `<span class="score">Submitted</span>`;
+    const nextIdx = ACTS.findIndex(x => x.id === id) + 1;
+    const next = nextIdx < ACTS.length ? `<button class="btn" type="button" data-go="${ACTS[nextIdx].id}">Go to Activity ${nextIdx+1}</button>` : `<button class="btn" type="button" data-go="done">See my results</button>`;
+    return `<div class="submit-zone"><div class="row">${sc}<span class="count">Submitted ${new Date(a.submittedAt).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}${extraNote}</span></div>${next}</div>`;
+  }
+  return `<div class="submit-zone"><span class="count" id="${id}-count"></span><div class="row" id="${id}-actions"><button class="btn" type="button" id="${id}-submit">Submit Activity</button></div></div>`;
+}
+
+/* ---------------- Activity renderers ---------------- */
+const RENDER = {
+DI(){ return renderQuiz("DI"); },
+CIN(){ return renderQuiz("CIN"); },
+CONST(){ return renderQuiz("CONST"); },
+IOM(){ return renderQuiz("IOM"); },
+A1(){
+  const a = act("A1"), done = locked("A1");
+  const rows = ID_ITEMS.map(([name, ans], i) => {
+    const q = `q${i+1}`, v = a.answers[q];
+    const cls = done ? (v === ans ? "right" : "wrong") : "";
+    const fb = done ? (v === ans ? `<span class="fb ok">Correct</span>` : `<span class="fb bad">${esc(REASONS[ans])}</span>`) : "";
+    return `<tr class="${cls}"><td class="num">${i+1}</td><td><code>${esc(name)}</code></td><td>${sel("A1", q, Object.entries(REASONS), "Choose…")}</td><td>${fb}</td></tr>`;
+  }).join("");
+  return `<section class="sheet">${header("A1", 1, "Rules: an identifier starts with a letter or underscore, contains only letters, digits and underscores, cannot be a keyword, and is case-sensitive. Pick the best description for each name.")}
+  <div class="recap">
+    <div><b>Program structure</b>Preprocessor directives, <code>using namespace std;</code>, global declarations, then <code>int main()</code>. Execution starts in <code>main()</code>.</div>
+    <div><b>Tokens</b>Keywords, identifiers, punctuators, operators and string literals.</div>
+    <div><b>Comments</b><code>//</code> for one line, <code>/* … */</code> for many. The compiler ignores them.</div>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Identifier</th><th>Your answer</th><th>${done?"Feedback":""}</th></tr></thead><tbody>${rows}</tbody></table></div>
+  ${submitZone("A1")}</section>`;
+},
+A2(){
+  const a = act("A2"), done = locked("A2");
+  const rows = DT_ITEMS.map(([what, accept], i) => {
+    const t = `t${i+1}`, d = `d${i+1}`;
+    const r = done ? gradeA2Row(i) : null;
+    const cls = done ? (r.type && r.decl ? "right" : "wrong") : "";
+    const fb = done ? `<span class="fb ${r.type?"ok":"bad"}">${r.type?"Type correct":"Expected "+esc(accept[0])}</span><br><span class="fb ${r.decl?"ok":"bad"}">${r.decl?"Declaration valid":"Check the declaration syntax"}</span>` : "";
+    return `<tr class="${cls}"><td class="num">${i+1}</td><td>${esc(what)}</td><td style="min-width:150px">${sel("A2", t, DT_OPTIONS.map(x => [x, x]), "Type…")}</td><td style="min-width:220px">${txt("A2", d, "type name = value;")}</td>${done?`<td>${fb}</td>`:""}</tr>`;
+  }).join("");
+  return `<section class="sheet">${header("A2", 2, "For each item, choose the most suitable data type and write one declaration statement using that type. Remember the semicolon.")}
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Data to store</th><th>Data type</th><th>Declaration</th>${done?"<th>Feedback</th>":""}</tr></thead><tbody>${rows}</tbody></table></div>
+  ${submitZone("A2")}</section>`;
+},
+A3(){
+  const a = act("A3"), done = locked("A3");
+  const rows = PR_ITEMS.map(([stmt, ans], i) => {
+    const n = i + 1;
+    let inputs, ok;
+    if (typeof ans === "object"){
+      inputs = Object.keys(ans).map(v => `<label class="row" style="gap:6px;flex-wrap:nowrap"><span class="mono">${v} =</span>${txt("A3", `q${n}${v}`, "", "code")}</label>`).join("");
+      ok = done && Object.keys(ans).every(v => numEq(a.answers[`q${n}${v}`], ans[v]));
+    } else { inputs = txt("A3", `q${n}`, "", "code"); ok = done && numEq(a.answers[`q${n}`], ans); }
+    const expect = typeof ans === "object" ? Object.entries(ans).map(([k, v]) => `${k} = ${v}`).join(", ") : ans;
+    return `<tr class="${done?(ok?"right":"wrong"):""}"><td class="num">${n}</td><td><code>${esc(stmt)}</code></td><td><div class="row" style="flex-wrap:nowrap;gap:8px">${inputs}</div></td>${done?`<td><span class="fb ${ok?"ok":"bad"}">${ok?"Correct":"Answer: "+esc(expect)}</span></td>`:""}</tr>`;
+  }).join("");
+  return `<section class="sheet">${header("A3", 3, "Assume <code>int a = 7, b = 2, c = 5;</code> at the start of <b>every</b> row. Work it out on paper first. For rows 7 to 9, give the value of each variable after the statement runs.")}
+  <div class="note info">Integer ÷ integer gives an integer (<code>13 / 5</code> is <code>2</code>). <code>%</code> gives the remainder. Precedence: <code>()</code>, then unary <code>++ --</code>, then <code>* / %</code>, then <code>+ -</code>, then assignment.</div>
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Statement</th><th>Your prediction</th>${done?"<th>Feedback</th>":""}</tr></thead><tbody>${rows}</tbody></table></div>
+  ${submitZone("A3")}</section>`;
+},
+A4(){
+  const a = act("A4"), done = locked("A4");
+  const listing = BUG_CODE.map((l, i) => `<div><span class="ln">${i+1}</span>${esc(l)}</div>`).join("");
+  const found = done ? gradeA4().lines : new Set();
+  const lineOpts = BUG_CODE.map((_, i) => [String(i+1), `Line ${i+1}`]);
+  const rows = Array.from({length: 7}, (_, i) => {
+    const n = i + 1, ln = a.answers[`l${n}`];
+    const ok = done && ln && BUG_LINES[ln] && firstOccurrence(ln, n);
+    return `<tr class="${done?(ok?"right":"wrong"):""}"><td class="num">${n}</td><td style="min-width:120px">${sel("A4", `l${n}`, lineOpts, "Line…")}</td><td style="min-width:200px">${txt("A4", `w${n}`, "What is wrong", "")}</td><td style="min-width:220px">${txt("A4", `f${n}`, "Corrected code")}</td>${done?`<td><span class="fb ${ok?"ok":"bad"}">${ok?esc(BUG_LINES[ln]):"Not an error line, or repeated"}</span></td>`:""}</tr>`;
+  }).join("");
+  const missed = done ? Object.keys(BUG_LINES).filter(l => !found.has(l)) : [];
+  return `<section class="sheet">${header("A4", 4, "This program should read a quantity and price, add 6% SST and print the total. It contains <b>7 errors</b>. Find each one: choose the line, say what is wrong, and write the corrected code.")}
+  <div class="listing" role="region" aria-label="Program with errors">${listing}</div>
+  <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Line</th><th>What is wrong</th><th>Corrected code</th>${done?"<th>Feedback</th>":""}</tr></thead><tbody>${rows}</tbody></table></div>
+  ${done && missed.length ? `<div class="note">Errors you missed: ${missed.map(l => `line ${l} (${esc(BUG_LINES[l])})`).join("; ")}.</div>` : ""}
+  ${submitZone("A4", done ? " · your explanations will be checked by your lecturer" : "")}</section>`;
+},
+A5(){
+  const done = locked("A5");
+  return `<section class="sheet">${header("A5", 0, "Draw the flowchart for this program, using the correct symbols. You can draw it here, or draw it on paper and upload a clear photo. You may do both.")}
+  <div class="note info"><b>Problem.</b> A program asks the user to enter the <b>quantity</b> and <b>price</b> of an item. It calculates <code>total = quantity × price</code>, adds 6% SST (<code>total = total + total × 0.06</code>), and displays the total in RM with 2 decimal places.</div>
+  ${FC_RULE}
+  ${flowchartPane("A5", done)}
+  ${submitZone("A5", done ? " · marked by your lecturer" : "")}</section>`;
+},
+PS(){
+  const done = locked("PS"), a = act("PS"), cur = S.psTab || "P1", P = PROBLEMS.find(x => x.id === cur);
+  const tabs = PROBLEMS.map((x, i) => `<button class="ps-tab ${problemDone(x.id)?"ok":""}" type="button" role="tab" data-ps="${x.id}" aria-selected="${x.id===cur}">Problem ${i+1}${problemDone(x.id)?" ✓":""}<small>${esc(x.title)}</small></button>`).join("");
+  const ta = (f, rows, ph, cls = "") => `<textarea id="PS-${cur}${f}" data-q="${cur}${f}" rows="${rows}" class="${cls}" placeholder="${esc(ph)}" ${dis("PS")}>${esc(a.answers[cur + f] || "")}</textarea>`;
+  return `<section class="sheet">${header("PS", 0, "Solve three problems in three steps. <b>Step 1:</b> analyse the problem into Input, Process and Output. <b>Step 2:</b> design the solution as pseudocode and as a flowchart. <b>Step 3:</b> write the C++ program, run it, and paste the code and output. Complete all three problems, then submit once.")}
+  <div class="ps-tabs" role="tablist" aria-label="Problems">${tabs}</div>
+  <div class="note info"><b>Problem ${PROBLEMS.indexOf(P)+1}: ${esc(P.title)}.</b> ${P.text}<div class="hint" style="margin-top:6px">Input style: ${esc(P.cin)}</div></div>
+  <div class="field"><span class="hint">Sample run (user input after the colon)</span><pre class="run">${esc(P.run)}</pre></div>
+  <div><div class="stepnum">STEP 1 · ANALYSIS</div><h3>Identify input, process and output</h3></div>
+  <div class="ipo">
+    <div class="field"><label for="PS-${cur}in">Input</label>${ta("in", 4, "Data the user enters")}</div>
+    <div class="field"><label for="PS-${cur}proc">Process</label>${ta("proc", 4, "Calculations or steps")}</div>
+    <div class="field"><label for="PS-${cur}out">Output</label>${ta("out", 4, "What is displayed")}</div>
+  </div>
+  <div><div class="stepnum">STEP 2 · DESIGN</div><h3>Write the pseudocode</h3></div>
+  <div class="field">${ta("pseudo", 9, "START\n  ...\nEND", "code")}<span class="hint">Use START and END, and words such as READ / GET, CALCULATE / SET and DISPLAY / PRINT.</span></div>
+  <div><h3>Draw the flowchart</h3></div>
+  ${FC_RULE}
+  ${flowchartPane(cur, done)}
+  <div><div class="stepnum">STEP 3 · CODE</div><h3>Write and run the C++ program</h3></div>
+  <p class="lede" style="font-size:15px">Write the complete program in Visual Studio, run it with the <b>sample input</b> above, then paste your code and the console output here.</p>
+  <div class="field"><label for="PS-${cur}code">C++ code</label>${ta("code", 16, "#include <iostream>\nusing namespace std;\n\nint main()\n{\n    \n    return 0;\n}", "code codebox")}</div>
+  <div class="field"><label for="PS-${cur}run">Program output (copy from the console window)</label>${ta("run", 6, "Paste the output of your program here", "code")}</div>
+  <div><h3 style="margin-bottom:6px">Automatic code checks</h3><ul class="checklist" id="codeCheck">${codeChecks(cur).map(c => `<li class="${c.ok?"ok":""}">${esc(c.t)}</li>`).join("")}</ul>
+  <p class="hint" style="margin-top:6px">These checks look for the required parts and test your output. Your lecturer still reads the code for correct logic.</p></div>
+  ${submitZone("PS", done ? " · code checks auto-marked; analysis, design and code logic marked by your lecturer" : "")}</section>`;
+},
+A6(){
+  const a = act("A6"), done = locked("A6");
+  const rows = TOPICS.map((t, i) => {
+    const q = `c${i+1}`, v = a.answers[q];
+    const opts = [1,2,3,4,5].map(n => `<label><input type="radio" name="A6-${q}" data-q="${q}" value="${n}" ${String(v)===String(n)?"checked":""} ${dis("A6")}>${n}</label>`).join("");
+    return `<tr><td>${esc(t)}</td><td><div class="rating" role="radiogroup" aria-label="${esc(t)}">${opts}</div></td></tr>`;
+  }).join("");
+  return `<section class="sheet">${header("A6", 6, "Rate how confident you feel about each topic, from 1 (lost) to 5 (I can teach it). Then tell your lecturer what is still unclear.")}
+  <div class="tbl-wrap"><table><thead><tr><th>Topic</th><th>Confidence</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="field"><label for="A6-unsure">What is one thing you are still unsure about?</label><textarea id="A6-unsure" data-q="unsure" rows="3" ${dis("A6")} placeholder="e.g. when to use ++a instead of a++">${esc(val("A6","unsure"))}</textarea></div>
+  <div class="field"><label for="A6-learned">What is one thing you learned today?</label><textarea id="A6-learned" data-q="learned" rows="2" ${dis("A6")}>${esc(val("A6","learned"))}</textarea></div>
+  ${submitZone("A6")}</section>`;
+}
+};
+
+const FC_RULE = `<div class="note">Flowchart rule: do <b>not</b> draw variable declarations such as <code>int quantity;</code>. Show only what the algorithm does: input, calculations and output. A constant or starting value may appear in a process box when the calculation uses it, e.g. <code>TICKET_PRICE = 15.00</code>.</div>`;
+function flowchartPane(k, done){
+  const tab = S.fcTabs[k] || "draw", up = S.uploads[k];
+  return `<div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="${tab==="draw"}" data-tab="draw">Draw here</button>
+    <button class="tab" role="tab" aria-selected="${tab==="upload"}" data-tab="upload">Upload a photo${up?" ✓":""}</button>
+  </div>
+  <div id="paneDraw" ${tab==="draw"?"":"hidden"}>
+    ${done ? "" : `<div class="tools" role="toolbar" aria-label="Flowchart tools" style="margin-bottom:10px">
+      <button class="tool" type="button" data-add="term"><svg viewBox="0 0 22 16"><rect x="1" y="3" width="20" height="10" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Start / End</button>
+      <button class="tool" type="button" data-add="io"><svg viewBox="0 0 22 16"><polygon points="5,3 21,3 17,13 1,13" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Input / Output</button>
+      <button class="tool" type="button" data-add="proc"><svg viewBox="0 0 22 16"><rect x="1" y="3" width="20" height="10" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Process</button>
+      <button class="tool" type="button" data-add="dec"><svg viewBox="0 0 22 16"><polygon points="11,1 21,8 11,15 1,8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Decision</button>
+      <button class="tool" type="button" id="toolConnect" aria-pressed="false"><svg viewBox="0 0 22 16"><path d="M2 8h15M13 4l5 4-5 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Connect arrow</button>
+      <button class="tool" type="button" id="toolDelete" disabled>Delete selected</button>
+      <button class="tool" type="button" id="toolClear">Clear all</button>
+    </div>
+    <div class="label-edit" style="margin-bottom:10px"><label for="fcLabel" class="hint">Text in selected shape</label><input id="fcLabel" type="text" placeholder="Select a shape or arrow, then type here" disabled></div>
+    <div id="clearConfirm" class="confirm" hidden>Remove every shape and arrow? <button class="btn small danger" type="button" id="clearYes">Clear all</button><button class="btn small ghost" type="button" id="clearNo">Keep</button></div>
+    <p class="hint" id="fcHint" style="margin-bottom:8px">Add shapes, drag to arrange, then use <b>Connect arrow</b>: tap the first shape, then the next.</p>`}
+    <div class="canvas-wrap"><svg id="fc" viewBox="0 0 720 900" role="img" aria-label="Your flowchart"></svg></div>
+  </div>
+  <div id="paneUp" ${tab==="upload"?"":"hidden"}>
+    <div class="drop" id="drop">
+      ${up ? `<img class="preview-img" src="${up}" alt="Your uploaded flowchart">` : `<p>Take a clear, well-lit photo of your flowchart on paper.</p>`}
+      ${done ? "" : `<div class="row"><label class="btn ghost small" for="upFile" style="cursor:pointer">${up?"Replace photo":"Choose photo"}</label>${up?`<button class="btn small ghost" type="button" id="upRemove">Remove</button>`:""}</div>
+      <input type="file" id="upFile" accept="image/*" hidden><p class="hint">JPG or PNG. Large photos are resized automatically.</p>`}
+    </div>
+  </div>
+  ${done ? "" : `<div><h3 style="margin-bottom:6px">Flowchart checklist</h3><ul class="checklist" id="fcCheck"></ul></div>`}`;
+}
+function boardReady(k){ const n = board(k).nodes.length > 0, u = !!S.uploads[k]; return (n || u) && (u || fcChecks(k).every(x => x.ok)); }
+function problemDone(p){ const a = act("PS").answers; return PS_FIELDS.every(([f]) => String(a[p + f] || "").trim()) && boardReady(p); }
+
+/* ---------------- Grading ---------------- */
+function numEq(a, b){ if (a == null || String(a).trim() === "") return false; const x = parseFloat(String(a).trim()), y = parseFloat(b); return !isNaN(x) && Math.abs(x - y) < 1e-9 && /^-?\d+(\.\d+)?$/.test(String(a).trim()); }
+function gradeA1(){ const a = act("A1"); return ID_ITEMS.reduce((s, [, ans], i) => s + (a.answers[`q${i+1}`] === ans ? 1 : 0), 0); }
+function gradeA2Row(i){
+  const a = act("A2"), t = a.answers[`t${i+1}`] || "", d = (a.answers[`d${i+1}`] || "").trim();
+  const type = DT_ITEMS[i][1].includes(t);
+  const re = /^(const\s+)?(int|double|float|char|bool|short|long)\s+([A-Za-z_]\w*)(\s*=\s*[^;]+)?\s*;$/;
+  const m = d.match(re);
+  const declType = m ? ((m[1] ? "const " : "") + m[2]) : null;
+  const decl = !!m && declType === t && !["int","float","double","char","bool","const","return"].includes(m[3]) && !(m[1] && !m[4]);
+  return {type, decl};
+}
+function gradeA2(){ let s = 0; DT_ITEMS.forEach((_, i) => { const r = gradeA2Row(i); s += (r.type?1:0) + (r.decl?1:0); }); return s; }
+function gradeA3(){ const a = act("A3"); return PR_ITEMS.reduce((s, [, ans], i) => {
+  const n = i + 1; const ok = typeof ans === "object" ? Object.keys(ans).every(v => numEq(a.answers[`q${n}${v}`], ans[v])) : numEq(a.answers[`q${n}`], ans);
+  return s + (ok ? 1 : 0); }, 0); }
+function firstOccurrence(ln, row){ const a = act("A4"); for (let k = 1; k < row; k++) if (a.answers[`l${k}`] === ln) return false; return true; }
+function gradeA4(){ const a = act("A4"), lines = new Set(); for (let k = 1; k <= 7; k++){ const ln = a.answers[`l${k}`]; if (ln && BUG_LINES[ln]) lines.add(ln); } return {score: lines.size, lines}; }
+
+/* ---------------- Completion rules ---------------- */
+function requiredKeys(id){
+  if (QUIZ[id]) return quizKeys(id);
+  if (id === "A1") return ID_ITEMS.map((_, i) => `q${i+1}`);
+  if (id === "A2") return DT_ITEMS.flatMap((_, i) => [`t${i+1}`, `d${i+1}`]);
+  if (id === "A3") return PR_ITEMS.flatMap(([, ans], i) => typeof ans === "object" ? Object.keys(ans).map(v => `q${i+1}${v}`) : [`q${i+1}`]);
+  if (id === "A4") return Array.from({length: 7}, (_, i) => [`l${i+1}`, `w${i+1}`, `f${i+1}`]).flat();
+  if (id === "A6") return [...TOPICS.map((_, i) => `c${i+1}`), "unsure"];
+  return [];
+}
+function progress(id){
+  if (id === "A5"){
+    const hasWork = board("A5").nodes.length > 0 || !!S.uploads.A5;
+    return {done: hasWork ? 1 : 0, total: 1, ready: boardReady("A5"), msg: hasWork ? "" : "Draw your flowchart or upload a photo to continue."};
+  }
+  if (id === "PS"){
+    const left = PROBLEMS.filter(x => !problemDone(x.id)).map(x => "Problem " + (PROBLEMS.indexOf(x) + 1));
+    return {done: 3 - left.length, total: 3, ready: !left.length, msg: left.length ? `Still to complete: ${left.join(", ")} (IPO, pseudocode, flowchart, code and output).` : "All three problems complete. Ready to submit."};
+  }
+  const keys = requiredKeys(id), a = act(id);
+  const done = keys.filter(k => String(a.answers[k] ?? "").trim() !== "").length;
+  return {done, total: keys.length, ready: done === keys.length};
+}
+
+/* ---------------- Binding & tracking ---------------- */
+function bindActivity(id){
+  $$("#panels [data-go]").forEach(b => b.addEventListener("click", () => goto(b.dataset.go)));
+  if (id === "A5" || id === "PS") bindFlowchart();
+  $$("#panels [data-ps]").forEach(t => t.addEventListener("click", () => { S.psTab = t.dataset.ps; save(); goto("PS"); }));
+  if (locked(id)) return;
+  const a = act(id);
+  const t0 = new Date(a.openedAt).getTime();
+  $$(`#panels [data-q]`).forEach(el => {
+    const q = el.dataset.q;
+    const record = () => {
+      const v = el.type === "radio" ? (el.checked ? el.value : a.answers[q]) : el.value;
+      a.logged = a.logged || {};
+      if (a.logged[q] === v) return;
+      const prevHad = a.logged[q] != null && a.logged[q] !== "";
+      a.logged[q] = v;
+      a.answers[q] = v;
+      if (prevHad) a.edits[q] = (a.edits[q] || 0) + 1;
+      if (a.log.length < 400) a.log.push({q, v: String(v).slice(0, 200), t: Math.round((Date.now() - t0) / 1000)});
+      save(); updateCount(id);
+    };
+    el.addEventListener("change", record);
+    if (el.tagName !== "SELECT" && el.type !== "radio") el.addEventListener("input", () => { a.answers[q] = el.value; save(); updateCount(id); });
+    if (el.tagName !== "SELECT" && el.type !== "radio") el.addEventListener("blur", record);
+  });
+  $$("#panels textarea.codebox").forEach(t => t.addEventListener("keydown", e => {
+    if (e.key !== "Tab" || e.shiftKey) return;
+    e.preventDefault(); const st = t.selectionStart, en = t.selectionEnd;
+    t.value = t.value.slice(0, st) + "    " + t.value.slice(en); t.selectionStart = t.selectionEnd = st + 4;
+    t.dispatchEvent(new Event("input"));
+  }));
+  const btn = $(`#${id}-submit`);
+  btn?.addEventListener("click", () => askConfirm(id));
+  updateCount(id);
+}
+function updateCount(id){
+  const p = progress(id), c = $(`#${id}-count`), b = $(`#${id}-submit`);
+  if (!c) return;
+  if (id === "A5"){ renderChecklist(); c.textContent = p.msg || (p.ready ? "Ready to submit." : "Complete the checklist, or upload a photo."); }
+  else if (id === "PS"){ renderChecklist(); c.textContent = p.msg;
+    const cc = $("#codeCheck"); if (cc) cc.innerHTML = codeChecks(FCB).map(x => `<li class="${x.ok?"ok":""}">${esc(x.t)}</li>`).join("");
+    $$("#panels [data-ps]").forEach(t => t.classList.toggle("ok", problemDone(t.dataset.ps))); }
+  else c.textContent = `${p.done} of ${p.total} answered${p.ready ? "" : " · answer everything to submit"}`;
+  b.disabled = !p.ready;
+}
+function askConfirm(id){
+  const box = $(`#${id}-actions`);
+  box.innerHTML = `<div class="confirm" role="alert">You cannot change your answers after submitting. <button class="btn small" type="button" id="${id}-yes">Submit now</button><button class="btn small ghost" type="button" id="${id}-no">Keep working</button></div>`;
+  $(`#${id}-yes`).focus();
+  $(`#${id}-no`).addEventListener("click", () => { box.innerHTML = `<button class="btn" type="button" id="${id}-submit">Submit Activity</button>`; $(`#${id}-submit`).addEventListener("click", () => askConfirm(id)); updateCount(id); });
+  $(`#${id}-yes`).addEventListener("click", () => submitActivity(id));
+}
+async function submitActivity(id){
+  const a = act(id);
+  if (!progress(id).ready) return;
+  const scorers = {A1: [gradeA1, 10], A2: [gradeA2, 12], A3: [gradeA3, 10], A4: [() => gradeA4().score, 7],
+    DI: [() => gradeQuiz("DI"), QUIZ.DI.max], CONST: [() => gradeQuiz("CONST"), QUIZ.CONST.max], PS: [gradePS, CODE_MAX], CIN: [() => gradeQuiz("CIN"), QUIZ.CIN.max], IOM: [() => gradeQuiz("IOM"), QUIZ.IOM.max]};
+  if (scorers[id]){ a.score = scorers[id][0](); a.max = scorers[id][1]; }
+  a.submittedAt = new Date().toISOString();
+  const timeSpentSec = Math.round((Date.now() - new Date(a.openedAt).getTime()) / 1000);
+  const extra = {activity: id, activityTitle: ACTS.find(x => x.id === id).title, answers: readableAnswers(id), score: a.score ?? "", max: a.max ?? "",
+                 timeSpentSec, editsTotal: Object.values(a.edits).reduce((s, n) => s + n, 0), inputLog: a.log};
+  if (id === "A5" || id === "PS"){
+    extra.images = {}; extra.flowchartShapes = {};
+    const keys = id === "A5" ? ["A5"] : PROBLEMS.map(x => x.id);
+    for (const k of keys){
+      const tag = k === "A5" ? "warmup" : k;
+      extra.flowchartShapes[tag] = board(k);
+      if (board(k).nodes.length) extra.images[tag + "_drawing"] = await exportPNG(k);
+      if (S.uploads[k]) extra.images[tag + "_photo"] = S.uploads[k];
+    }
+  }
+  save();
+  send("activity_submit", extra);
+  if (unlockedIndex() >= ACTS.length){ send("lab_finished", {totalScore: totalScore().score, totalMax: totalScore().max}); }
+  goto(id);
+}
+function readableAnswers(id){
+  if (QUIZ[id]) return quizReadable(id);
+  const a = act(id).answers, out = {};
+  if (id === "A1") ID_ITEMS.forEach(([n], i) => out[`${i+1}. ${n}`] = REASONS[a[`q${i+1}`]] || "");
+  else if (id === "A2") DT_ITEMS.forEach(([w], i) => out[`${i+1}. ${w}`] = `${a[`t${i+1}`] || ""} | ${a[`d${i+1}`] || ""}`);
+  else if (id === "A3") PR_ITEMS.forEach(([s, ans], i) => out[`${i+1}. ${s}`] = typeof ans === "object" ? Object.keys(ans).map(v => `${v}=${a[`q${i+1}${v}`] ?? ""}`).join(", ") : (a[`q${i+1}`] ?? ""));
+  else if (id === "A4") for (let k = 1; k <= 7; k++) out[`Error ${k}`] = `line ${a[`l${k}`] || "?"} | ${a[`w${k}`] || ""} | ${a[`f${k}`] || ""}`;
+  else if (id === "A5") out["Flowchart"] = `${board("A5").nodes.length} shapes, ${board("A5").links.length} arrows${S.uploads.A5 ? ", photo uploaded" : ""}`;
+  else if (id === "PS") PROBLEMS.forEach((x, i) => { PS_FIELDS.forEach(([f, lbl]) => out[`P${i+1} ${lbl}`] = a[x.id + f] || ""); out[`P${i+1} Flowchart`] = `${board(x.id).nodes.length} shapes${S.uploads[x.id] ? ", photo uploaded" : ""}`;
+    const ck = codeChecks(x.id); out[`P${i+1} Code checks`] = `${ck.filter(c => c.ok).length}/${ck.length} — missing: ${ck.filter(c => !c.ok).map(c => c.t).join("; ") || "none"}`; });
+  else if (id === "A6"){ TOPICS.forEach((t, i) => out[t] = a[`c${i+1}`] || ""); out["Still unsure"] = a.unsure || ""; out["Learned"] = a.learned || ""; }
+  return out;
+}
+function totalScore(){ let s = 0, m = 0; ACTS.map(x => x.id).forEach(id => { const a = act(id); if (a.max){ s += a.score; m += a.max; } }); return {score: s, max: m}; }
+
+/* ---------------- Done screen ---------------- */
+function renderDone(){
+  const t = totalScore();
+  const stamp = new Date(act("A6").submittedAt || Date.now());
+  const code = `${S.matric}-${stamp.toISOString().slice(0,16).replace(/[-:T]/g,"")}-${hash(S.matric + JSON.stringify(S.acts)).slice(0,6)}`;
+  const tiles = ACTS.map((x, i) => { const a = act(x.id); return `<div><span>${i+1}. ${esc(x.short)}</span><b>${a.max ? `${a.score} / ${a.max}` : "Submitted"}</b></div>`; }).join("");
+  return `<section class="sheet"><div class="eyebrow">Lab complete</div><h2>Well done, ${esc(S.name.split(" ")[0])}</h2>
+  <p class="lede">Your auto-marked score is <b>${t.score} / ${t.max}</b>. The bug explanations, flowcharts, IPO, pseudocode and code logic are marked by your lecturer.</p>
+  <div class="results">${tiles}</div>
+  <div class="field"><span class="hint">Submission receipt. Take a screenshot as proof of submission send to WA group.</span><div class="receipt">${esc(S.name)} · ${esc(S.matric)} · ${esc(S.group)}<br>${stamp.toLocaleString()}<br>Receipt: ${code}</div></div>
+  <div class="dl"><div style="flex:1;min-width:220px"><b>Submit to GitHub</b><div class="hint">Download your answers as a PDF and upload it to the folder Lab 3 submission in GitHub. File name: <span class="mono">${esc(S.matric)}_BITP1113_Lab3.pdf</span></div></div><button class="btn" type="button" id="pdfBtn">Download PDF</button></div>
+  <div id="pdfMsg" class="hint" role="status"></div>
+  <div id="doneSync"></div></section>`;
+}
+function bindDone(){ $("#pdfBtn")?.addEventListener("click", makePDF); bindDoneSync(); }
+function bindDoneSync(){ const el = $("#doneSync"); if (CONFIG.SCRIPT_URL && S.queue.length) el.innerHTML = `<div class="note">Some answers have not reached your lecturer yet. Keep this page open with internet on; it retries automatically.</div>`; }
+/* ---------------- PDF for Moodle ---------------- */
+const pdfTxt = v => String(v ?? "").replace(/␣/g, "_").replace(/⏎/g, " [Enter] ").replace(/[✓✗]/g, "").replace(/→/g, "->").replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, "-").replace(/[^\x09\x0A\x0D\x20-\xFF]/g, "?");
+function pdfRows(id){
+  const a = act(id).answers;
+  if (QUIZ[id]) return QUIZ[id].items.map((it, i) => {
+    const label = [it.code, it.input ? "Input: " + it.input : "", it.ask].filter(Boolean).join("\n");
+    let v;
+    if (it.k === "mcq") v = a[it.q] != null && a[it.q] !== "" ? qOpts(id, it)[+a[it.q]] : "";
+    else if (it.k === "text") v = a[it.q] || "";
+    else v = Object.keys(it.vars).map(x => `${x} = ${a[it.q + x] ?? ""}`).join(", ");
+    const ok = quizItemOk(id, it);
+    return [String(i+1), label, v, ok ? "Correct" : "Answer: " + quizExpect(id, it)];
+  });
+  if (id === "A1") return ID_ITEMS.map(([n, ans], i) => [String(i+1), n, REASONS[a[`q${i+1}`]] || "", a[`q${i+1}`] === ans ? "Correct" : "Answer: " + REASONS[ans]]);
+  if (id === "A2") return DT_ITEMS.map(([w, acc], i) => { const r = gradeA2Row(i); return [String(i+1), w, `${a[`t${i+1}`] || ""}\n${a[`d${i+1}`] || ""}`, `${r.type ? "Type correct" : "Expected " + acc[0]}; ${r.decl ? "declaration valid" : "check declaration"}`]; });
+  if (id === "A3") return PR_ITEMS.map(([st, ans], i) => { const n = i + 1, obj = typeof ans === "object";
+    const v = obj ? Object.keys(ans).map(x => `${x} = ${a[`q${n}${x}`] ?? ""}`).join(", ") : (a[`q${n}`] ?? "");
+    const ok = obj ? Object.keys(ans).every(x => numEq(a[`q${n}${x}`], ans[x])) : numEq(a[`q${n}`], ans);
+    return [String(n), st, v, ok ? "Correct" : "Answer: " + (obj ? Object.entries(ans).map(([k, e]) => `${k} = ${e}`).join(", ") : ans)]; });
+  if (id === "A4") return Array.from({length: 7}, (_, i) => { const n = i + 1, ln = a[`l${n}`];
+    const ok = ln && BUG_LINES[ln] && firstOccurrence(ln, n);
+    return [String(n), `Line ${ln || "?"}`, `${a[`w${n}`] || ""}\nFix: ${a[`f${n}`] || ""}`, ok ? "Error line found" : "Not an error line, or repeated"]; });
+  if (id === "A6") return [...TOPICS.map((t, i) => [String(i+1), t, `Confidence ${a[`c${i+1}`] || "-"} / 5`, ""]), ["", "Still unsure about", a.unsure || "", ""], ["", "Learned today", a.learned || "", ""]];
+  return [];
+}
+async function makePDF(){
+  const msg = $("#pdfMsg"), btn = $("#pdfBtn");
+  if (!window.jspdf || !window.jspdf.jsPDF){ msg.textContent = "The PDF tool could not load. Check your internet connection and reload the page; your answers are kept."; return; }
+  btn.disabled = true; msg.textContent = "Preparing your PDF…";
+  try{
+    const { jsPDF } = window.jspdf, doc = new jsPDF({unit: "mm", format: "a4"});
+    const W = 210, M = 15, CW = W - 2 * M, PH = 297;
+    let y = M;
+    const need = h => { if (y + h > PH - M){ doc.addPage(); y = M; } };
+    const line = (t, size = 10, style = "normal", color = [24, 33, 47]) => {
+      doc.setFont("helvetica", style); doc.setFontSize(size); doc.setTextColor(...color);
+      const parts = doc.splitTextToSize(pdfTxt(t), CW);
+      parts.forEach(pt => { need(size * 0.45); doc.text(pt, M, y); y += size * 0.45; });
+    };
+    const t = totalScore(), stamp = new Date(act("A6").submittedAt || Date.now());
+    const receipt = `${S.matric}-${stamp.toISOString().slice(0,16).replace(/[-:T]/g,"")}-${hash(S.matric + JSON.stringify(S.acts)).slice(0,6)}`;
+    line("BITP 1113 Programming Technique", 9, "normal", [91, 102, 120]);
+    line("Lab 3: Basic Elements of C++", 18, "bold"); y += 2;
+    doc.autoTable({startY: y, theme: "plain", margin: {left: M, right: M}, styles: {fontSize: 10, cellPadding: 1.2},
+      columnStyles: {0: {fontStyle: "bold", cellWidth: 38}},
+      body: [["Name", pdfTxt(S.name)], ["Matric number", S.matric], ["Section / group", pdfTxt(S.group)],
+             ["Started", new Date(S.startedAt).toLocaleString()], ["Completed", stamp.toLocaleString()],
+             ["Auto-marked score", `${t.score} / ${t.max}`], ["Receipt", receipt]]});
+    y = doc.lastAutoTable.finalY + 4;
+    line("Bug-hunt explanations, flowcharts, IPO, pseudocode and code logic are marked by the lecturer.", 9, "italic", [91, 102, 120]);
+    for (const [i, A] of ACTS.entries()){
+      const a = act(A.id);
+      need(18); y += 5;
+      line(`${i+1}. ${A.title}${a.max ? `   (${a.score} / ${a.max})` : ""}`, 13, "bold", [29, 78, 216]);
+      y += 1;
+      if (A.id === "A5" || A.id === "PS"){
+        const keys = A.id === "A5" ? ["A5"] : PROBLEMS.map(x => x.id);
+        for (const k of keys){
+          if (A.id === "PS"){
+            const P = PROBLEMS.find(x => x.id === k);
+            need(12); y += 2; line(`Problem ${PROBLEMS.indexOf(P)+1}: ${P.title}`, 11, "bold");
+            doc.autoTable({startY: y, margin: {left: M, right: M}, styles: {fontSize: 9, cellPadding: 2, valign: "top"}, headStyles: {fillColor: [227, 234, 252], textColor: [24, 33, 47]},
+              head: [["Input", "Process", "Output"]], body: [[pdfTxt(a.answers[k + "in"]), pdfTxt(a.answers[k + "proc"]), pdfTxt(a.answers[k + "out"])]]});
+            y = doc.lastAutoTable.finalY + 3;
+            const mono = (title, txt) => { need(16); line(title, 10, "bold");
+              doc.setFont("courier", "normal"); doc.setFontSize(9); doc.setTextColor(24, 33, 47);
+              pdfTxt(txt).replace(/\t/g, "    ").split("\n").forEach(l => doc.splitTextToSize(l || " ", CW).forEach(pt => { need(4.2); doc.text(pt, M, y); y += 4.2; }));
+              y += 2; };
+            mono("Pseudocode", a.answers[k + "pseudo"]);
+            mono("C++ code", a.answers[k + "code"]);
+            mono("Program output", a.answers[k + "run"]);
+            const ck = codeChecks(k);
+            doc.autoTable({startY: y, margin: {left: M, right: M}, styles: {fontSize: 8.5, cellPadding: 1.4}, headStyles: {fillColor: [227, 234, 252], textColor: [24, 33, 47]},
+              head: [[`Automatic code checks (${ck.filter(c => c.ok).length} / ${ck.length})`, "Result"]],
+              body: ck.map(c => [pdfTxt(c.t), c.ok ? "Passed" : "Not found"]),
+              didParseCell: d => { if (d.section === "body" && d.column.index === 1) d.cell.styles.textColor = d.cell.raw === "Passed" ? [21, 128, 61] : [185, 28, 28]; }});
+            y = doc.lastAutoTable.finalY + 3;
+          }
+          const imgs = [];
+          if (board(k).nodes.length) imgs.push(["Flowchart (drawn)", await exportPNG(k)]);
+          if (S.uploads[k]) imgs.push(["Flowchart (photo)", S.uploads[k]]);
+          for (const [cap, src] of imgs){
+            if (!src) continue;
+            const dim = await new Promise(r => { const im = new Image(); im.onload = () => r([im.width, im.height]); im.onerror = () => r(null); im.src = src; });
+            if (!dim) continue;
+            let w = CW, h = w * dim[1] / dim[0];
+            const maxH = PH - 2 * M - 10; if (h > maxH){ h = maxH; w = h * dim[0] / dim[1]; }
+            need(h + 8); line(cap, 9, "italic", [91, 102, 120]);
+            doc.addImage(src, src.startsWith("data:image/png") ? "PNG" : "JPEG", M, y, w, h); y += h + 4;
+          }
+        }
+        continue;
+      }
+      doc.autoTable({startY: y, margin: {left: M, right: M}, styles: {fontSize: 9, cellPadding: 1.8, valign: "top"},
+        headStyles: {fillColor: [227, 234, 252], textColor: [24, 33, 47]},
+        columnStyles: {0: {cellWidth: 8}, 1: {cellWidth: 62, font: "courier"}, 3: {cellWidth: 45}},
+        head: [["#", "Question", "Your answer", A.id === "A6" ? "" : "Result"]],
+        body: pdfRows(A.id).map(r => r.map(pdfTxt)),
+        didParseCell: d => { if (d.section === "body" && d.column.index === 3){ const v = String(d.cell.raw); d.cell.styles.textColor = v.startsWith("Correct") || v.startsWith("Error line found") ? [21, 128, 61] : [185, 28, 28]; } }});
+      y = doc.lastAutoTable.finalY + 2;
+    }
+    const pages = doc.getNumberOfPages();
+    for (let n = 1; n <= pages; n++){ doc.setPage(n); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(120, 130, 145);
+      doc.text(`${S.matric} · ${pdfTxt(S.name)} · Receipt ${receipt}`.replace(/·/g, "|"), M, PH - 8); doc.text(`Page ${n} of ${pages}`, W - M, PH - 8, {align: "right"}); }
+    doc.save(`${S.matric}_BITP1113_Lab3.pdf`);
+    msg.textContent = "PDF downloaded. Upload it to Moodle. If nothing downloaded, open this page in Chrome or Edge rather than inside Teams, then try again.";
+    send("pdf_downloaded");
+  }catch(e){ msg.textContent = "The PDF could not be created: " + e.message; }
+  btn.disabled = false;
+}
+function hash(s){ let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36).toUpperCase(); }
+
+/* ---------------- Flowchart editor ---------------- */
+const SHAPES = {term:{w:160,h:50,text:"Start"}, io:{w:200,h:56,text:"Input"}, proc:{w:200,h:56,text:"Process"}, dec:{w:180,h:96,text:"Condition?"}};
+let FC = {sel:null, selLink:null, connect:false, src:null, drag:null};
+function fcChecks(k = FCB){
+  const bd = board(k), n = bd.nodes;
+  const terms = n.filter(x => x.type === "term").length, ios = n.filter(x => x.type === "io").length, procs = n.filter(x => x.type === "proc").length;
+  const linked = n.length > 0 && n.every(x => bd.links.some(l => l.from === x.id || l.to === x.id));
+  const labelled = n.length > 0 && n.every(x => x.text.trim() && (x.type === "term" || x.text.trim() !== SHAPES[x.type].text));
+  return [
+    {t:"Has a Start and an End terminator", ok: terms >= 2},
+    {t:"Has input and output symbols (parallelograms)", ok: ios >= 2},
+    {t:"Has at least one process box", ok: procs >= 1},
+    {t:"Every shape is connected by an arrow", ok: linked},
+    {t:"Every input/output, process and decision shape has your own text", ok: labelled}
+  ];
+}
+function renderChecklist(){
+  const ul = $("#fcCheck"); if (!ul) return;
+  ul.innerHTML = fcChecks().map(c => `<li class="${c.ok?"ok":""}">${esc(c.t)}</li>`).join("") + (S.uploads[FCB] ? `<li class="ok">Photo uploaded (the checklist is optional when you upload)</li>` : "");
+}
+function nodePoly(n){
+  const {x, y, w, h} = n;
+  if (n.type === "io"){ const k = 16; return `<polygon class="shape" points="${x+k},${y} ${x+w},${y} ${x+w-k},${y+h} ${x},${y+h}"/>`; }
+  if (n.type === "dec") return `<polygon class="shape" points="${x+w/2},${y} ${x+w},${y+h/2} ${x+w/2},${y+h} ${x},${y+h/2}"/>`;
+  if (n.type === "term") return `<rect class="shape term" x="${x}" y="${y}" width="${w}" height="${h}" rx="${h/2}"/>`;
+  return `<rect class="shape" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+}
+function wrapText(s, max){
+  const words = String(s).split(/\s+/), lines = []; let cur = "";
+  words.forEach(w => { if ((cur + " " + w).trim().length > max && cur){ lines.push(cur); cur = w; } else cur = (cur + " " + w).trim(); });
+  if (cur) lines.push(cur); return lines.slice(0, 4);
+}
+function textSVG(n){
+  const max = n.type === "dec" ? 14 : 22, lines = wrapText(n.text, max), lh = 17, y0 = n.y + n.h/2 - (lines.length - 1) * lh / 2;
+  return `<text text-anchor="middle" dominant-baseline="middle">${lines.map((l, i) => `<tspan x="${n.x + n.w/2}" y="${y0 + i*lh}">${esc(l)}</tspan>`).join("")}</text>`;
+}
+function anchor(n, toward){
+  const cx = n.x + n.w/2, cy = n.y + n.h/2, dx = toward.x - cx, dy = toward.y - cy;
+  if (Math.abs(dy) * n.w >= Math.abs(dx) * n.h) return dy > 0 ? {x: cx, y: n.y + n.h, side: "v"} : {x: cx, y: n.y, side: "v"};
+  return dx > 0 ? {x: n.x + n.w, y: cy, side: "h"} : {x: n.x, y: cy, side: "h"};
+}
+function linkPath(l, bd = B()){
+  const a = bd.nodes.find(n => n.id === l.from), b = bd.nodes.find(n => n.id === l.to);
+  if (!a || !b) return null;
+  const s = anchor(a, {x: b.x + b.w/2, y: b.y + b.h/2}), t = anchor(b, {x: a.x + a.w/2, y: a.y + a.h/2});
+  let d;
+  if (s.side === "v" && t.side === "v"){ const my = (s.y + t.y) / 2; d = `M${s.x},${s.y} V${my} H${t.x} V${t.y}`; }
+  else if (s.side === "h" && t.side === "h"){ const mx = (s.x + t.x) / 2; d = `M${s.x},${s.y} H${mx} V${t.y} H${t.x}`; }
+  else if (s.side === "v"){ d = `M${s.x},${s.y} V${t.y} H${t.x}`; }
+  else { d = `M${s.x},${s.y} H${t.x} V${t.y}`; }
+  return {d, mx: (s.x + t.x) / 2, my: (s.y + t.y) / 2};
+}
+function fcHeight(bd = B()){ return Math.max(900, ...bd.nodes.map(n => n.y + n.h + 120)); }
+function renderFC(){
+  const svg = $("#fc"); if (!svg) return;
+  const H = fcHeight(); svg.setAttribute("viewBox", `0 0 720 ${H}`);
+  let grid = ""; for (let gx = 40; gx < 720; gx += 40) grid += `<line class="gridline" x1="${gx}" y1="0" x2="${gx}" y2="${H}"/>`; for (let gy = 40; gy < H; gy += 40) grid += `<line class="gridline" x1="0" y1="${gy}" x2="720" y2="${gy}"/>`;
+  const links = B().links.map(l => { const p = linkPath(l); if (!p) return "";
+    const lbl = l.label ? `<rect class="lbl-bg" x="${p.mx - l.label.length*4.5 - 6}" y="${p.my - 11}" width="${l.label.length*9 + 12}" height="22" rx="4"/><text x="${p.mx}" y="${p.my + 1}" text-anchor="middle" dominant-baseline="middle">${esc(l.label)}</text>` : "";
+    return `<g data-link="${l.id}"><path class="hit" d="${p.d}"/><path class="link ${FC.selLink===l.id?"sel":""}" d="${p.d}" marker-end="url(#ah)"/>${lbl}</g>`; }).join("");
+  const nodes = B().nodes.map(n => `<g class="node ${FC.sel===n.id?"sel":""} ${FC.src===n.id?"src":""}" data-node="${n.id}">${nodePoly(n)}${textSVG(n)}</g>`).join("");
+  const empty = B().nodes.length ? "" : `<text x="360" y="120" text-anchor="middle" style="fill:var(--muted)">Your flowchart is empty. Add a Start / End shape to begin.</text>`;
+  svg.innerHTML = `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>${grid}${links}${nodes}${empty}`;
+  const lab = $("#fcLabel"), del = $("#toolDelete");
+  if (lab){
+    const n = B().nodes.find(x => x.id === FC.sel), l = B().links.find(x => x.id === FC.selLink);
+    lab.disabled = !(n || l);
+    lab.placeholder = l ? "Arrow label, e.g. Yes or No" : "Select a shape or arrow, then type here";
+    if (document.activeElement !== lab) lab.value = n ? n.text : l ? (l.label || "") : "";
+    del.disabled = !(n || l);
+  }
+  updateCount(CUR);
+}
+function svgPoint(e){ const svg = $("#fc"), pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); }
+function fcLog(what){ what = (FCB !== "A5" ? FCB + " " : "") + what; const a = act(CUR); if (!a.openedAt) a.openedAt = new Date().toISOString(); if (a.log.length < 400) a.log.push({q: "flowchart", v: what, t: Math.round((Date.now() - new Date(a.openedAt).getTime()) / 1000)}); }
+function bindFlowchart(){
+  if (FC.board !== FCB) FC = {sel:null, selLink:null, connect:false, src:null, drag:null, board:FCB};
+  FC.connect = false; FC.src = null;
+  $$("#panels [data-tab]").forEach(b => b.addEventListener("click", () => { S.fcTabs[FCB] = b.dataset.tab; save(); rerender(); }));
+  renderFC();
+  bindUpload();
+  if (locked(CUR)) return;
+  const svg = $("#fc");
+  $$("#panels [data-add]").forEach(b => b.addEventListener("click", () => {
+    const t = b.dataset.add, d = SHAPES[t];
+    const bottom = B().nodes.length ? Math.max(...B().nodes.map(n => n.y + n.h)) : 0;
+    const terms = B().nodes.filter(n => n.type === "term").length;
+    const n = {id: uid(), type: t, w: d.w, h: d.h, x: Math.round((360 - d.w/2) / 10) * 10, y: Math.round((bottom + (bottom ? 50 : 40)) / 10) * 10, text: t === "term" && terms >= 1 ? "End" : d.text};
+    B().nodes.push(n); FC.sel = n.id; FC.selLink = null; fcLog(`add ${t}`); save(); renderFC();
+    const lab = $("#fcLabel"); lab.focus(); lab.select();
+  }));
+  const conn = $("#toolConnect");
+  conn.addEventListener("click", () => { FC.connect = !FC.connect; FC.src = null; conn.setAttribute("aria-pressed", FC.connect);
+    $("#fcHint").innerHTML = FC.connect ? "<b>Connect mode:</b> tap the shape the arrow starts from, then the shape it points to. Tap <b>Connect arrow</b> again to finish." : "Add shapes, drag to arrange, then use <b>Connect arrow</b>: tap the first shape, then the next."; renderFC(); });
+  $("#toolDelete").addEventListener("click", deleteSelected);
+  $("#toolClear").addEventListener("click", () => { $("#clearConfirm").hidden = false; });
+  $("#clearNo").addEventListener("click", () => { $("#clearConfirm").hidden = true; });
+  $("#clearYes").addEventListener("click", () => { S.boards[FCB] = {nodes: [], links: []}; FC.sel = FC.selLink = FC.src = null; $("#clearConfirm").hidden = true; fcLog("clear all"); save(); renderFC(); });
+  $("#fcLabel").addEventListener("input", e => {
+    const n = B().nodes.find(x => x.id === FC.sel), l = B().links.find(x => x.id === FC.selLink);
+    if (n) n.text = e.target.value.slice(0, 80); else if (l) l.label = e.target.value.slice(0, 12);
+    save(); renderFC();
+  });
+  $("#fcLabel").addEventListener("change", e => fcLog(`text: ${e.target.value.slice(0, 60)}`));
+  svg.addEventListener("pointerdown", e => {
+    const g = e.target.closest("[data-node]"), lg = e.target.closest("[data-link]");
+    if (g){
+      const id = g.dataset.node;
+      if (FC.connect){
+        if (!FC.src){ FC.src = id; }
+        else if (FC.src !== id){
+          if (!B().links.some(l => l.from === FC.src && l.to === id)){ B().links.push({id: uid(), from: FC.src, to: id, label: ""}); fcLog("connect"); }
+          FC.src = id; save();
+        }
+        renderFC(); return;
+      }
+      FC.sel = id; FC.selLink = null;
+      const n = B().nodes.find(x => x.id === id), p = svgPoint(e);
+      FC.drag = {id, dx: p.x - n.x, dy: p.y - n.y, moved: false};
+      svg.setPointerCapture(e.pointerId); renderFC(); return;
+    }
+    if (lg && !FC.connect){ FC.selLink = lg.dataset.link; FC.sel = null; renderFC(); return; }
+    FC.sel = FC.selLink = null; if (FC.connect) FC.src = null; renderFC();
+  });
+  svg.addEventListener("pointermove", e => {
+    if (!FC.drag) return;
+    const n = B().nodes.find(x => x.id === FC.drag.id), p = svgPoint(e);
+    n.x = Math.max(0, Math.min(720 - n.w, Math.round((p.x - FC.drag.dx) / 10) * 10));
+    n.y = Math.max(0, Math.round((p.y - FC.drag.dy) / 10) * 10);
+    FC.drag.moved = true; renderFC();
+  });
+  const end = () => { if (FC.drag?.moved){ fcLog("move"); save(); } FC.drag = null; };
+  svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
+  if (!window.__fcKeys){ window.__fcKeys = true; document.addEventListener("keydown", e => {
+    if (!$("#fc") || locked(CUR)) return;
+    if ((e.key === "Delete" || e.key === "Backspace") && document.activeElement === document.body) deleteSelected();
+    if (e.key === "Escape" && FC.connect) $("#toolConnect")?.click();
+  }); }
+}
+function deleteSelected(){
+  if (FC.sel){ B().links = B().links.filter(l => l.from !== FC.sel && l.to !== FC.sel); B().nodes = B().nodes.filter(n => n.id !== FC.sel); fcLog("delete shape"); }
+  else if (FC.selLink){ B().links = B().links.filter(l => l.id !== FC.selLink); fcLog("delete arrow"); }
+  FC.sel = FC.selLink = null; save(); renderFC();
+}
+function exportPNG(k = FCB){
+  const bd = board(k), H = fcHeight(bd), ink = "#111827";
+  const nodes = bd.nodes.map(n => nodePoly(n).replace(/class="shape term"/, `fill="#e3eafc" stroke="${ink}" stroke-width="2"`).replace(/class="shape"/, `fill="#ffffff" stroke="${ink}" stroke-width="2"`) + textSVG(n).replace("<text ", `<text fill="${ink}" font-family="Arial, sans-serif" font-size="15" `)).join("");
+  const links = bd.links.map(l => { const p = linkPath(l, bd); if (!p) return "";
+    const lbl = l.label ? `<rect x="${p.mx - l.label.length*4.5 - 6}" y="${p.my - 11}" width="${l.label.length*9 + 12}" height="22" fill="#ffffff"/><text x="${p.mx}" y="${p.my + 1}" text-anchor="middle" dominant-baseline="middle" fill="${ink}" font-family="Arial, sans-serif" font-size="14">${esc(l.label)}</text>` : "";
+    return `<path d="${p.d}" stroke="${ink}" stroke-width="2" fill="none" marker-end="url(#ah)"/>${lbl}`; }).join("");
+  const header = `<text x="16" y="26" fill="#475569" font-family="Arial, sans-serif" font-size="13">${esc(S.name)} · ${esc(S.matric)} · ${esc(S.group)} · ${new Date().toLocaleString()}</text>`;
+  const src = `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="${H}" viewBox="0 0 720 ${H}"><rect width="720" height="${H}" fill="#ffffff"/><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="${ink}"/></marker></defs>${header}${links}${nodes}</svg>`;
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => { const c = document.createElement("canvas"); c.width = 720; c.height = H; const ctx = c.getContext("2d"); ctx.drawImage(img, 0, 0); try{ res(c.toDataURL("image/png")); }catch(e){ res(""); } };
+    img.onerror = () => res("");
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(src);
+  });
+}
+function bindUpload(){
+  const f = $("#upFile"), drop = $("#drop");
+  if (!f) return;
+  const take = file => {
+    if (!file || !file.type.startsWith("image/")){ return; }
+    const r = new FileReader();
+    r.onload = () => { const img = new Image(); img.onload = () => {
+      const m = 1400, k = Math.min(1, m / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      S.uploads[FCB] = c.toDataURL("image/jpeg", 0.8); fcLog("upload photo"); save(); rerender(); };
+      img.src = r.result; };
+    r.readAsDataURL(file);
+  };
+  f.addEventListener("change", () => take(f.files[0]));
+  drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+  drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); take(e.dataTransfer.files[0]); });
+  $("#upRemove")?.addEventListener("click", () => { delete S.uploads[FCB]; fcLog("remove photo"); save(); rerender(); });
+}
+
+initGate();
+</script>
+
+</body></html>
