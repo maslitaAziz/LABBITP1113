@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
+</head><body>
+<title>C++ Function Types</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a reading column for the theory, then a debugger bench per type — code | two flowcharts (caller main, called function) | call stack and console */
+:root{
+  --bg:#f3f5f8; --panel:#ffffff; --ink:#18212f; --muted:#5b6678; --line:#d9dee7;
+  --code-bg:#14202e; --code-ink:#dbe4ef; --code-dim:#7d8ca0;
+  --pc:#f2b300; --pc-soft:rgba(242,179,0,.22); --pc-ink:#3a2c00;
+  --accent:#2357c6; --accent-soft:#e3ebfb;
+  --fn:#7a3fc4; --fn-soft:#efe6fb;
+  --yes:#13834a; --yes-soft:#dcf2e6; --no:#c2372f; --no-soft:#fbe3e1;
+  --shape:#ffffff; --shape-stroke:#3b4658; --edge:#8a95a7;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141c; --panel:#161f2b; --ink:#e6ebf2; --muted:#98a4b6; --line:#2a3646;
+  --code-bg:#0a1018; --code-ink:#dbe4ef; --code-dim:#6f7e93;
+  --pc:#f5c033; --pc-soft:rgba(245,192,51,.20); --pc-ink:#1b1400;
+  --accent:#7aa2ff; --accent-soft:#1d2a44; --fn:#c49bff; --fn-soft:#2a1f40;
+  --yes:#4cc285; --yes-soft:#123425; --no:#ff7b72; --no-soft:#3a1715;
+  --shape:#1c2735; --shape-stroke:#a9b6c8; --edge:#6c7a8f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141c; --panel:#161f2b; --ink:#e6ebf2; --muted:#98a4b6; --line:#2a3646;
+  --code-bg:#0a1018; --code-ink:#dbe4ef; --code-dim:#6f7e93;
+  --pc:#f5c033; --pc-soft:rgba(245,192,51,.20); --pc-ink:#1b1400;
+  --accent:#7aa2ff; --accent-soft:#1d2a44; --fn:#c49bff; --fn-soft:#2a1f40;
+  --yes:#4cc285; --yes-soft:#123425; --no:#ff7b72; --no-soft:#3a1715;
+  --shape:#1c2735; --shape-stroke:#a9b6c8; --edge:#6c7a8f; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:28px}
+.wrap>*{min-width:0}
+.read{max-width:820px}
+h1{font:800 clamp(28px,4vw,40px)/1.1 var(--display);letter-spacing:-.01em;margin:0;text-wrap:balance}
+h2{font:700 clamp(21px,2.6vw,26px)/1.2 var(--display);margin:0 0 10px;text-wrap:balance}
+h3{font:700 17px/1.3 var(--display);margin:0 0 6px}
+p{margin:0 0 10px}
+.lede{color:var(--muted);font-size:17px;max-width:68ch}
+code,.mono{font-family:var(--mono);font-size:.92em}
+.label{font:600 11px var(--body);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+
+/* anatomy */
+.anat{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:18px 16px 14px;font:clamp(15px,2.2vw,20px)/1.6 var(--mono);overflow-x:auto}
+.anat .row{white-space:pre;display:flex;flex-wrap:nowrap}
+.anat .seg{position:relative;display:inline-block;border-bottom:3px solid}
+.anat .rt{border-color:#ffb38a}.anat .nm{border-color:#7fb4ff}.anat .pl{border-color:#a6e3a1}.anat .rv{border-color:var(--pc)}
+.tags{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;font:13px var(--body)}
+.tags span{display:inline-flex;align-items:center;gap:6px}
+.tags i{width:14px;height:4px;border-radius:2px;display:inline-block}
+.terms{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+.term{border-top:2px solid var(--line);padding-top:8px}
+.term b{display:block;font-family:var(--display)}
+.term p{color:var(--muted);font-size:15px;margin:0}
+
+/* matrix */
+.matrix{display:grid;grid-template-columns:auto 1fr 1fr;gap:8px;align-items:stretch}
+.matrix .hd{font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:flex-end;padding:0 4px 2px}
+.matrix .rh{font:600 13px var(--body);color:var(--muted);display:flex;align-items:center;padding-right:6px;max-width:130px}
+.cell{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:4px;min-width:0}
+.cell:hover{border-color:var(--accent)}
+.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cell .n{font:800 13px var(--display);color:var(--accent);letter-spacing:.04em}
+.cell code{font-size:14px;color:var(--ink);white-space:normal;overflow-wrap:anywhere}
+.cell small{color:var(--muted);font-size:13px}
+@media (max-width:560px){.matrix{grid-template-columns:1fr 1fr}.matrix .hd.c0,.matrix .rh{display:none}}
+
+/* one value */
+.one{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.one{grid-template-columns:minmax(0,1fr)}}
+.snip{background:var(--code-bg);color:var(--code-ink);border-radius:8px;padding:12px 14px;font:14px/1.6 var(--mono);overflow-x:auto;white-space:pre;margin:0}
+.rules{margin:0;padding-left:20px}
+.rules li+li{margin-top:6px}
+.bad{color:var(--no);font-weight:600}.good{color:var(--yes);font-weight:600}
+
+/* type tabs */
+.typetabs{display:flex;flex-wrap:wrap;gap:6px}
+.ttab{font:600 14px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer;text-align:left;display:grid;gap:0}
+.ttab small{font:500 12px var(--mono);color:var(--muted)}
+.ttab[aria-selected="true"]{background:var(--code-bg);color:var(--pc);border-color:var(--code-bg)}
+.ttab[aria-selected="true"] small{color:var(--code-ink)}
+.ttab:focus-visible,.btn:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.explain{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.explain{grid-template-columns:minmax(0,1fr)}}
+.sig{display:grid;gap:8px}
+.sig .k{font:600 11px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sig .snip{font-size:15px}
+.pts{margin:0;padding-left:20px}
+.pts li+li{margin-top:5px}
+
+/* stepper */
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.ctrls{display:flex;gap:6px;flex-wrap:wrap}
+.btn{font:600 14px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:7px 12px;border-radius:7px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.field{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}
+.field input[type=number]{width:64px;font:600 14px var(--mono);padding:5px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.field input[type=range]{width:110px;accent-color:var(--accent)}
+.bench{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1060px){.bench{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.state{grid-column:1/-1}}
+@media (max-width:700px){.bench{grid-template-columns:minmax(0,1fr)}}
+
+.code{background:var(--code-bg);color:var(--code-ink);border-radius:8px;padding:10px 0;font:14.5px/1.7 var(--mono);overflow-x:auto}
+.ln{display:grid;grid-template-columns:26px 24px 1fr;white-space:pre;align-items:center;transition:background .25s;border-left:3px solid transparent}
+.ln.fnz{border-left-color:var(--fn)}
+.ln .no{color:var(--code-dim);text-align:right;font-size:12px}
+.ln .pcm{color:var(--pc);text-align:center;opacity:0;transition:opacity .2s}
+.ln.on{background:var(--pc-soft)}
+.ln.on .pcm{opacity:1}
+.ln.wait{background:rgba(127,180,255,.12)}
+.ln.wait .pcm{opacity:1;color:#7fb4ff}
+.kw{color:#7fb4ff}.num{color:#ffb38a}.str{color:#a6e3a1}.cm{color:var(--code-dim)}.ty{color:#d6a8ff}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+
+.fcs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.fcbox{min-width:0}
+.fcbox .label{text-align:center;text-transform:none;letter-spacing:0;font:600 13px var(--mono)}
+.fcbox.fn .label{color:var(--fn)}
+.fc{width:100%;display:block}
+.fc .shape{fill:var(--shape);stroke:var(--shape-stroke);stroke-width:1.5;transition:fill .25s,stroke .25s}
+.fc .term{fill:var(--accent-soft)}
+.fn .fc .term{fill:var(--fn-soft)}
+.fc g.on .shape{stroke:var(--pc);stroke-width:3;fill:var(--pc-soft)}
+.fc g.wait .shape{stroke:#7fb4ff;stroke-width:2.5;stroke-dasharray:5 3}
+.fc text{fill:var(--ink);font:500 11.5px var(--mono);text-anchor:middle;dominant-baseline:middle}
+.fc .elabel{font:600 11px var(--body);fill:var(--muted)}
+.fc .edge{fill:none;stroke:var(--edge);stroke-width:1.5;transition:stroke .25s}
+.fc .edge.on{stroke:var(--pc);stroke-width:2.6}
+.fc .ah{fill:var(--edge)}
+.token{transition:transform .45s cubic-bezier(.4,.1,.2,1),opacity .3s}
+.token circle{fill:var(--pc);stroke:var(--code-bg);stroke-width:2}
+.token.idle{opacity:.3}
+.fcnote{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+.state{display:grid;gap:12px}
+.progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--pc);width:0;transition:width .3s}
+.say{font-size:15.5px;line-height:1.5;min-height:3.2em;padding:10px 12px;border-radius:8px;background:var(--accent-soft)}
+.xfer{font:600 14px var(--mono);border-radius:8px;padding:8px 12px;display:flex;gap:8px;align-items:center;animation:slide .5s ease}
+.xfer.call{background:var(--fn-soft);color:var(--fn)}
+.xfer.ret{background:var(--yes-soft);color:var(--yes)}
+.xfer.none{background:var(--bg);color:var(--muted);border:1px dashed var(--line)}
+@keyframes slide{from{transform:translateX(-24px);opacity:0}}
+.stack{display:flex;flex-direction:column-reverse;gap:6px}
+.frame{border:1px solid var(--line);border-radius:8px;padding:8px 10px;transition:background .25s,border-color .25s}
+.frame.fnf{border-left:4px solid var(--fn)}
+.frame.mf{border-left:4px solid var(--accent)}
+.frame.act{background:var(--pc-soft);border-color:var(--pc)}
+.frame .fh{display:flex;justify-content:space-between;gap:8px;font:600 13px var(--mono)}
+.frame .fh small{font:500 12px var(--body);color:var(--muted)}
+.frame .vs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.frame .v{font:600 14px var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.frame .v.new{border-color:var(--pc);animation:pop .5s}
+@keyframes pop{from{background:var(--pc-soft)}}
+.frame .empty{font-size:13px;color:var(--muted)}
+.console{background:var(--code-bg);color:var(--code-ink);font:14.5px/1.6 var(--mono);border-radius:8px;padding:10px 12px;min-height:46px;overflow-x:auto;white-space:pre}
+.console .in{color:#a6e3a1;text-decoration:underline}
+.console .cursor{display:inline-block;width:8px;height:15px;background:var(--code-dim);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.hint{font-size:13px;color:var(--muted)}
+.kbd{font:12px var(--mono);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+
+/* quick check */
+.quiz{display:grid;gap:10px}
+.q{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px}
+.q .snip{font-size:14px}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opt{font:600 13px var(--body);border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:6px 10px;border-radius:999px;cursor:pointer}
+.opt.right{background:var(--yes-soft);border-color:var(--yes);color:var(--yes)}
+.opt.wrong{background:var(--no-soft);border-color:var(--no);color:var(--no)}
+.qfb{grid-column:1/-1;font-size:14px;color:var(--muted);min-height:0}
+@media (max-width:640px){.q{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){.token,.ln,.fc .shape,.fc .edge,.progress i{transition:none}.xfer,.frame .v.new{animation:none}.console .cursor{animation:none}}
+</style>
+
+<div class="wrap">
+  <header class="read">
+    <p class="label">BITP 1113 Programming Technique · Functions</p>
+    <h1>C++ Function Types</h1>
+    <p class="lede">A function is a named block of code that does one job. <code>main()</code> <b>calls</b> it, the function runs, and then control <b>returns</b> to the statement after the call. Functions are grouped into four types by two questions: does it receive data (parameters), and does it send a value back (return)?</p>
+  </header>
+
+  <section class="read" aria-labelledby="hAnat">
+    <h2 id="hAnat">Parts of a function</h2>
+    <div class="anat" aria-label="Annotated function">
+      <div class="row"><span class="seg rt">int</span> <span class="seg nm">add</span><span class="seg pl">(int a, int b)</span>     <span class="cm">// function header</span></div>
+      <div class="row">{</div>
+      <div class="row">    int sum = a + b;           <span class="cm">// function body</span></div>
+      <div class="row">    <span class="seg rv">return sum;</span>               <span class="cm">// sends ONE value back</span></div>
+      <div class="row">}</div>
+      <div class="row"> </div>
+      <div class="row">total = add(x, y);             <span class="cm">// function call in main()</span></div>
+    </div>
+    <div class="tags">
+      <span><i style="background:#ffb38a"></i>return type: the type of the value sent back, or <code>void</code> for none</span>
+      <span><i style="background:#7fb4ff"></i>function name</span>
+      <span><i style="background:#a6e3a1"></i>parameter list: the data it receives</span>
+      <span><i style="background:var(--pc)"></i>return statement</span>
+    </div>
+    <div class="terms">
+      <div class="term"><b>Parameter</b><p>A variable in the function header, e.g. <code>a</code> and <code>b</code>. It receives a value when the function is called.</p></div>
+      <div class="term"><b>Argument</b><p>The value passed in the call, e.g. <code>x</code> and <code>y</code>. Arguments are matched to parameters by position.</p></div>
+      <div class="term"><b>Prototype</b><p>A declaration such as <code>int add(int, int);</code> placed before <code>main()</code> when the definition comes after it.</p></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="hTypes">
+    <div class="read"><h2 id="hTypes">The four types</h2><p>Choose a type to read about it and watch it run.</p></div>
+    <div class="matrix" role="group" aria-label="Function types">
+      <div class="hd c0"></div><div class="hd">No parameters</div><div class="hd">With parameters</div>
+      <div class="rh">Returns nothing (void)</div>
+      <button class="cell" data-go="1"><span class="n">TYPE 1</span><code>void printLine()</code><small>Call: <code>printLine();</code></small></button>
+      <button class="cell" data-go="4"><span class="n">TYPE 4</span><code>void showGrade(int mark)</code><small>Call: <code>showGrade(75);</code></small></button>
+      <div class="rh">Returns one value</div>
+      <button class="cell" data-go="2"><span class="n">TYPE 2</span><code>int readMark()</code><small>Call: <code>mark = readMark();</code></small></button>
+      <button class="cell" data-go="3"><span class="n">TYPE 3</span><code>int add(int a, int b)</code><small>Call: <code>total = add(x, y);</code></small></button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="hOne">
+    <h2 id="hOne">A function returns only one value</h2>
+    <div class="one">
+      <div>
+        <ul class="rules">
+          <li><code>return</code> sends back <b>exactly one value</b>, of the function's return type, to the place where the function was called.</li>
+          <li><code>return</code> also <b>ends the function immediately</b>. Any statement after it is never run.</li>
+          <li>A <code>void</code> function returns <b>no value</b>. It may use <code>return;</code> on its own to end early, or simply reach the closing <code>}</code>.</li>
+          <li>The returned value must be <b>used</b> by the caller: store it (<code>total = add(x, y);</code>), display it (<code>cout &lt;&lt; add(x, y);</code>), or use it in an expression.</li>
+          <li>Need two results, such as a total <i>and</i> an average? Write two functions, or call one function twice.</li>
+        </ul>
+      </div>
+      <div>
+<pre class="snip"><span class="cm">// Mistake 1: trying to return two values</span>
+int f()
+{
+    int a = 3, b = 7;
+    return a, b;   <span class="cm">// returns only 7</span>
+}
+
+<span class="cm">// Mistake 2: two return statements</span>
+int g()
+{
+    return 1;      <span class="cm">// function ends here</span>
+    return 2;      <span class="cm">// never runs</span>
+}</pre>
+        <p class="hint" style="margin-top:8px"><code>cout &lt;&lt; f() &lt;&lt; " " &lt;&lt; g();</code> displays <code>7 1</code>. In <code>return a, b;</code> the comma operator throws away <code>a</code>, and the compiler only warns you.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="hType" id="types">
+    <div class="typetabs" role="tablist" aria-label="Function type">
+      <button class="ttab" role="tab" data-type="1" id="tt1">Type 1<small>no parameter · void</small></button>
+      <button class="ttab" role="tab" data-type="2" id="tt2">Type 2<small>no parameter · returns value</small></button>
+      <button class="ttab" role="tab" data-type="3" id="tt3">Type 3<small>parameters · returns value</small></button>
+      <button class="ttab" role="tab" data-type="4" id="tt4">Type 4<small>parameters · void</small></button>
+    </div>
+    <div class="panel explain" style="margin-top:12px">
+      <div>
+        <h2 id="hType"></h2>
+        <p id="tDesc"></p>
+        <ul class="pts" id="tPts"></ul>
+      </div>
+      <div class="sig" id="tSig"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="hRun" style="display:grid;gap:12px">
+    <h2 id="hRun" style="margin:0">Watch it run</h2>
+    <div class="bar">
+      <div class="ctrls">
+        <button class="btn" id="bReset" title="Start again (R)">⟲ Reset</button>
+        <button class="btn" id="bBack" title="Previous step (←)">◀ Back</button>
+        <button class="btn primary" id="bPlay" title="Play or pause (Space)">▶ Play</button>
+        <button class="btn" id="bStep" title="Next step (→)">Step ▶</button>
+      </div>
+      <div id="inputs" class="ctrls"></div>
+      <label class="field" for="inSpeed">speed<input type="range" id="inSpeed" min="1" max="5" value="3"></label>
+    </div>
+    <div class="bench">
+      <section class="panel">
+        <p class="label">Code</p>
+        <div class="code" id="code"></div>
+        <div class="legend"><span><i style="background:var(--pc)"></i>running now</span><span><i style="background:#7fb4ff"></i>call in main, waiting for the function</span><span><i style="background:var(--fn)"></i>function definition</span></div>
+      </section>
+      <section class="panel">
+        <div class="fcs">
+          <div class="fcbox"><p class="label">main()</p><svg class="fc" id="fcMain" role="img" aria-label="Flowchart of main"></svg></div>
+          <div class="fcbox fn"><p class="label" id="fnLabel">function</p><svg class="fc" id="fcFn" role="img" aria-label="Flowchart of the function"></svg></div>
+        </div>
+        <p class="fcnote">A function call is drawn with the <b>predefined process</b> symbol: a box with double side lines. The function has its own flowchart that starts with its name and ends with Return.</p>
+      </section>
+      <section class="panel state">
+        <p class="label">What is happening</p>
+        <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+        <div class="say" id="say" aria-live="polite"></div>
+        <div id="xfer"></div>
+        <div>
+          <p class="label">Call stack: memory of each running function</p>
+          <div class="stack" id="stack"></div>
+        </div>
+        <div>
+          <p class="label">Console</p>
+          <div class="console" id="out"></div>
+        </div>
+        <p class="hint">Keys: <span class="kbd">→</span> step, <span class="kbd">←</span> back, <span class="kbd">Space</span> play or pause, <span class="kbd">R</span> reset.</p>
+      </section>
+    </div>
+  </section>
+
+  <section class="panel read" aria-labelledby="hQuiz" style="max-width:none">
+    <h2 id="hQuiz">Quick check: which type is it?</h2>
+    <div class="quiz" id="quiz"></div>
+  </section>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hl = t => {
+  let cm = "", i = t.indexOf("//"); if (i >= 0){ cm = t.slice(i); t = t.slice(0, i); }
+  return esc(t).replace(/(&quot;[^&]*&quot;)/g, '<span class="str">$1</span>')
+    .replace(/\b(void|int|double|return|if|else|cout|cin|endl)\b/g, m => `<span class="${/^(void|int|double)$/.test(m) ? "ty" : "kw"}">${m}</span>`)
+    .replace(/(^|[^\w#])(\d+)\b/g, '$1<span class="num">$2</span>') + (cm ? `<span class="cm">${esc(cm)}</span>` : "");
+};
+
+/* ---------- explanations ---------- */
+const INFO = {
+  1: {title:"Type 1: no parameter, no return value", desc:"The function receives nothing and sends nothing back. It just does its job, usually displaying something, and then control returns to main().",
+      pts:["Return type is <code>void</code> and the parentheses are empty.", "The call is a statement on its own: <code>printLine();</code>", "You cannot store or display the result: <code>x = printLine();</code> is a compile error, because there is no value.", "Use it for fixed output such as a line, a heading or a menu. One function can be called many times."],
+      sig:[["Header", "void printLine()"], ["Call", "printLine();"]]},
+  2: {title:"Type 2: no parameter, returns a value", desc:"The function receives nothing from main(), works out or reads a value itself, and sends that one value back with return.",
+      pts:["Return type is the type of the value sent back, e.g. <code>int</code>. The parentheses are empty.", "It must end with <code>return value;</code> of that type.", "The caller must use the value: <code>mark = readMark();</code> or <code>cout &lt;&lt; readMark();</code>", "Use it to read and return an input, or to produce one value."],
+      sig:[["Header", "int readMark()"], ["Call", "mark = readMark();"]]},
+  3: {title:"Type 3: with parameters, returns a value", desc:"The caller passes data in as arguments. The function uses its parameters to calculate a result and returns that one result.",
+      pts:["Arguments are copied into parameters <b>by position</b>: <code>x</code> → <code>a</code>, <code>y</code> → <code>b</code>.", "The number, order and types of the arguments must match the parameters.", "The parameters are copies. Changing <code>a</code> inside the function does not change <code>x</code> in main().", "Many values can go in, but only <b>one value</b> comes out."],
+      sig:[["Header", "int add(int a, int b)"], ["Call", "total = add(x, y);"]]},
+  4: {title:"Type 4: with parameters, no return value", desc:"The caller passes data in, and the function uses it to do a job, usually displaying a result. Nothing is sent back.",
+      pts:["Return type is <code>void</code>, with a parameter list.", "The call is a statement on its own: <code>showGrade(75);</code>", "Each call can pass a different argument, so the same code gives different output.", "Use it to display results that depend on data."],
+      sig:[["Header", "void showGrade(int mark)"], ["Call", "showGrade(75);"]]}
+};
+
+/* ---------- programs, flowcharts and step scripts ---------- */
+const P = {
+  1: () => ({
+    fname: "printLine()",
+    code: [["fh","void printLine()"],["","{"],["f1",'    cout << "----------" << endl;'],["fe","}"],["",""],["mh","int main()"],["","{"],["m1","    printLine();"],["m2",'    cout << "MENU" << endl;'],["m3","    printLine();"],["m4","    return 0;"],["","}"]],
+    main: chartV([["start","term","Start"],["c1","call","printLine()"],["o1","io",'cout "MENU"'],["c2","call","printLine()"],["end","term","End"]]),
+    fn: chartV([["fs","term","printLine()"],["f1","io",'cout "-----"'],["fe","term","Return"]]),
+    script(){
+      const s = new Script("printLine");
+      s.main("mh", "start", "The program starts in <b>main()</b>.");
+      const call = (line, node, n) => {
+        s.main(line, node, `<b>Call ${n}:</b> main() reaches <code>printLine();</code> and jumps to the function. main() <b>pauses</b> here and remembers where to come back.`, {xfer:["call", "printLine()  ·  no arguments are passed"]});
+        s.enter({}, "fh", "fs", "<b>printLine()</b> starts. It has no parameters, so its memory is empty.");
+        s.fn("f1", "f1", "The body displays a line of dashes.", {out:"----------\n"});
+        s.fn("fe", "fe", "The function reaches <code>}</code>. It is <b>void</b>, so <b>no value</b> is sent back.", {xfer:["none", "void: nothing is returned"]});
+        s.leave(line, node, `Control returns to main(), to the statement <b>after</b> the call.`);
+      };
+      call("m1", "c1", 1);
+      s.main("m2", "o1", "main() displays MENU.", {out:"MENU\n"});
+      call("m3", "c2", 2);
+      s.main("m4", "end", "<b>Finished.</b> The same function was called twice. Writing it once and calling it twice avoids repeating code.");
+      return s.ev;
+    }
+  }),
+  2: (v) => ({
+    fname: "readMark()",
+    code: [["fh","int readMark()"],["","{"],["f1","    int m;"],["f2",'    cout << "Enter mark: ";'],["f3","    cin >> m;"],["f4","    return m;"],["fe","}"],["",""],["mh","int main()"],["","{"],["m1","    int mark;"],["m2","    mark = readMark();"],["m3",'    cout << "Mark: " << mark << endl;'],["m4","    return 0;"],["","}"]],
+    main: chartV([["start","term","Start"],["c1","call","mark = readMark()"],["o1","io","cout mark"],["end","term","End"]]),
+    fn: chartV([["fs","term","readMark()"],["f2","io",'cout "Enter mark"'],["f3","io","cin m"],["fe","term","Return m"]]),
+    script(){
+      const s = new Script("readMark");
+      s.main("mh", "start", "The program starts in <b>main()</b>.");
+      s.main("m1", "start", "main() declares <code>mark</code>. It has no value yet.", {set:{mark:"?"}});
+      s.main("m2", "c1", "main() calls <code>readMark()</code>. No arguments are passed, but main() is <b>waiting for a value</b> to store in <code>mark</code>.", {xfer:["call", "readMark()  ·  no arguments are passed"]});
+      s.enter({}, "fh", "fs", "<b>readMark()</b> starts with its own memory.");
+      s.fn("f1", "fs", "The function declares its own variable <code>m</code>. It is local: main() cannot see it.", {set:{m:"?"}});
+      s.fn("f2", "f2", "The function displays a prompt.", {out:"Enter mark: "});
+      s.fn("f3", "f3", `The user types <b>${v.a}</b>, and it is stored in <code>m</code>.`, {set:{m:v.a}, out:`<in>${v.a}</in>\n`});
+      s.fn("f4", "fe", `<code>return m;</code> sends <b>one value</b>, ${v.a}, back to main() and ends the function. <code>m</code> disappears.`, {xfer:["ret", `return ${v.a}  →  mark`]});
+      s.leave("m2", "c1", `Back in main(), the returned value is stored: <code>mark = ${v.a}</code>.`, {set:{mark:v.a}});
+      s.main("m3", "o1", "main() displays the mark.", {out:`Mark: ${v.a}\n`});
+      s.main("m4", "end", "<b>Finished.</b> The value travelled one way: from the function back to main().");
+      return s.ev;
+    },
+    inputs: [["a", "user types", 78]]
+  }),
+  3: (v) => ({
+    fname: "add(a, b)",
+    code: [["fh","int add(int a, int b)"],["","{"],["f1","    int sum = a + b;"],["f2","    return sum;"],["fe","}"],["",""],["mh","int main()"],["","{"],["m1",`    int x = ${v.a}, y = ${v.b}, total;`],["m2","    total = add(x, y);"],["m3",'    cout << "Total: " << total << endl;'],["m4","    return 0;"],["","}"]],
+    main: chartV([["start","term","Start"],["p1","proc",`x = ${v.a}, y = ${v.b}`],["c1","call","total = add(x, y)"],["o1","io","cout total"],["end","term","End"]]),
+    fn: chartV([["fs","term","add(a, b)"],["f1","proc","sum = a + b"],["fe","term","Return sum"]]),
+    script(){
+      const s = new Script("add"), sum = v.a + v.b;
+      s.main("mh", "start", "The program starts in <b>main()</b>.");
+      s.main("m1", "p1", `main() sets <code>x = ${v.a}</code> and <code>y = ${v.b}</code>.`, {set:{x:v.a, y:v.b, total:"?"}});
+      s.main("m2", "c1", "main() calls <code>add(x, y)</code>. The <b>arguments</b> are the values of x and y.", {xfer:["call", `x = ${v.a} → a,   y = ${v.b} → b   (copied by position)`]});
+      s.enter({a:v.a, b:v.b}, "fh", "fs", `<b>add()</b> starts. Its <b>parameters</b> receive copies: <code>a = ${v.a}</code>, <code>b = ${v.b}</code>.`);
+      s.fn("f1", "f1", `The function calculates <code>sum = ${v.a} + ${v.b} = ${sum}</code>.`, {set:{sum}});
+      s.fn("f2", "fe", `<code>return sum;</code> sends <b>one value</b>, ${sum}, back. Two values came in; only one comes out. a, b and sum disappear.`, {xfer:["ret", `return ${sum}  →  total`]});
+      s.leave("m2", "c1", `Back in main(): <code>total = ${sum}</code>. x and y were not changed.`, {set:{total:sum}});
+      s.main("m3", "o1", "main() displays the total.", {out:`Total: ${sum}\n`});
+      s.main("m4", "end", "<b>Finished.</b> Data went in through the parameters, and one result came back through return.");
+      return s.ev;
+    },
+    inputs: [["a", "x =", 4], ["b", "y =", 5]]
+  }),
+  4: (v) => ({
+    fname: "showGrade(mark)",
+    code: [["fh","void showGrade(int mark)"],["","{"],["f1","    if (mark >= 50)"],["f2",'        cout << "Pass" << endl;'],["f3","    else"],["f4",'        cout << "Fail" << endl;'],["fe","}"],["",""],["mh","int main()"],["","{"],["m1",`    showGrade(${v.a});`],["m2",`    showGrade(${v.b});`],["m3","    return 0;"],["","}"]],
+    main: chartV([["start","term","Start"],["c1","call",`showGrade(${v.a})`],["c2","call",`showGrade(${v.b})`],["end","term","End"]]),
+    fn: chartBranch(),
+    script(){
+      const s = new Script("showGrade");
+      s.main("mh", "start", "The program starts in <b>main()</b>.");
+      const call = (line, node, m, n) => {
+        s.main(line, node, `<b>Call ${n}:</b> main() calls <code>showGrade(${m})</code>. The argument ${m} is passed in.`, {xfer:["call", `${m} → mark`]});
+        s.enter({mark:m}, "fh", "fs", `<b>showGrade()</b> starts. Its parameter receives the argument: <code>mark = ${m}</code>.`);
+        const ok = m >= 50;
+        s.fn("f1", "d", `Test: <code>${m} >= 50</code> is <b>${ok}</b>.`);
+        s.fn(ok ? "f2" : "f4", ok ? "pass" : "fail", `The function displays <b>${ok ? "Pass" : "Fail"}</b>.`, {out:`${ok ? "Pass" : "Fail"}\n`});
+        s.fn("fe", "fe", "The function reaches <code>}</code>. It is <b>void</b>, so <b>no value</b> is sent back.", {xfer:["none", "void: nothing is returned"]});
+        s.leave(line, node, "Control returns to main(), to the statement after the call.");
+      };
+      call("m1", "c1", v.a, 1);
+      call("m2", "c2", v.b, 2);
+      s.main("m3", "end", "<b>Finished.</b> One function, two calls, two different arguments, two different outputs.");
+      return s.ev;
+    },
+    inputs: [["a", "1st argument", 75], ["b", "2nd argument", 40]]
+  })
+};
+
+/* builds the event list: each event is one step on screen */
+class Script {
+  constructor(fn){ this.fnName = fn; this.ev = []; this.mainVars = {}; this.fnVars = null; this.out = ""; this.lastMain = "start"; this.lastFn = null; this.callLine = null; }
+  snap(extra){
+    const e = {mainVars: {...this.mainVars}, fnVars: this.fnVars ? {...this.fnVars} : null, out: this.out, ...extra};
+    this.ev.push(e);
+  }
+  apply(o){ if (o.out) this.out += o.out; }
+  main(line, node, say, o = {}){
+    const changed = o.set ? Object.keys(o.set) : [];
+    if (o.set) Object.assign(this.mainVars, o.set);
+    this.apply(o); this.lastMain = node;
+    this.snap({line, active:"main", mainNode:node, fnNode:null, say, xfer:o.xfer, changed});
+  }
+  enter(params, line, node, say){
+    this.fnVars = {...params}; this.callLine = this.ev[this.ev.length - 1].line; this.lastFn = node;
+    this.snap({line, wait:this.callLine, active:"fn", mainNode:this.lastMain, fnNode:node, say, changed:Object.keys(params)});
+  }
+  fn(line, node, say, o = {}){
+    const changed = o.set ? Object.keys(o.set) : [];
+    if (o.set) Object.assign(this.fnVars, o.set);
+    this.apply(o); this.lastFn = node;
+    this.snap({line, wait:this.callLine, active:"fn", mainNode:this.lastMain, fnNode:node, say, xfer:o.xfer, changed});
+  }
+  leave(line, node, say, o = {}){
+    this.fnVars = null;
+    const changed = o.set ? Object.keys(o.set) : [];
+    if (o.set) Object.assign(this.mainVars, o.set);
+    this.snap({line, active:"main", mainNode:node, fnNode:null, say, changed, back:true});
+  }
+}
+
+/* ---------- flowchart layout ---------- */
+const SZ = {term:[118, 30], proc:[150, 34], io:[156, 34], call:[160, 36], dec:[130, 54]};
+function chartV(list){
+  const cx = 100, gap = 24; let y = 10;
+  const nodes = list.map(([id, kind, label]) => { const [w, h] = SZ[kind]; const n = {id, kind, label, cx, cy: y + h/2, w, h}; y += h + gap; return n; });
+  const edges = nodes.slice(1).map((n, k) => { const a = nodes[k]; return {d:`M${cx},${a.cy + a.h/2} V${n.cy - n.h/2}`, key:`${a.id}>${n.id}`}; });
+  return {nodes, edges, h: y - gap + 10};
+}
+function chartBranch(){
+  const n = (id, kind, label, cx, cy, w) => { const [W, h] = SZ[kind]; return {id, kind, label, cx, cy, w: w || W, h}; };
+  const nodes = [n("fs","term","showGrade(mark)",100,25,130), n("d","dec","mark >= 50 ?",100,95), n("pass","io",'cout "Pass"',51,170,98), n("fail","io",'cout "Fail"',149,170,98), n("fe","term","Return",100,240)];
+  const edges = [{d:"M100,40 V68", key:"fs>d"}, {d:"M35,95 H51 V153", key:"d>pass", lbl:"Yes", lx:22, ly:84}, {d:"M165,95 H149 V153", key:"d>fail", lbl:"No", lx:178, ly:84},
+                 {d:"M51,187 V205 H96 V225", key:"pass>fe"}, {d:"M149,187 V205 H104 V225", key:"fail>fe"}];
+  return {nodes, edges, h: 265};
+}
+function shape(n){
+  const x = n.cx - n.w/2, y = n.cy - n.h/2;
+  if (n.kind === "term") return `<rect class="shape term" x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="${n.h/2}"/>`;
+  if (n.kind === "proc") return `<rect class="shape" x="${x}" y="${y}" width="${n.w}" height="${n.h}"/>`;
+  if (n.kind === "call") return `<rect class="shape" x="${x}" y="${y}" width="${n.w}" height="${n.h}"/><line class="shape" x1="${x + 9}" y1="${y}" x2="${x + 9}" y2="${y + n.h}"/><line class="shape" x1="${x + n.w - 9}" y1="${y}" x2="${x + n.w - 9}" y2="${y + n.h}"/>`;
+  if (n.kind === "io"){ const k = 10; return `<polygon class="shape" points="${x+k},${y} ${x+n.w},${y} ${x+n.w-k},${y+n.h} ${x},${y+n.h}"/>`; }
+  return `<polygon class="shape" points="${n.cx},${y} ${x+n.w},${n.cy} ${n.cx},${y+n.h} ${x},${n.cy}"/>`;
+}
+function drawChart(svg, ch, tokenId){
+  svg.setAttribute("viewBox", `0 0 200 ${ch.h}`);
+  const marker = `<defs><marker id="ah-${tokenId}" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
+  const edges = ch.edges.map(e => `<path class="edge" data-edge="${e.key}" d="${e.d}" marker-end="url(#ah-${tokenId})"/>` + (e.lbl ? `<text class="elabel" x="${e.lx}" y="${e.ly}">${e.lbl}</text>` : "")).join("");
+  const nodes = ch.nodes.map(n => `<g data-node="${n.id}">${shape(n)}<text x="${n.cx}" y="${n.cy + 1}">${esc(n.label)}</text></g>`).join("");
+  svg.innerHTML = marker + edges + nodes + `<g class="token" id="${tokenId}"><circle r="8"/></g>`;
+}
+
+/* ---------- stepper ---------- */
+let type = 1, prog, events = [], idx = 0, timer = null;
+const vals = {1:{}, 2:{a:78}, 3:{a:4, b:5}, 4:{a:75, b:40}};
+function renderInfo(){
+  const I = INFO[type];
+  $("#hType").textContent = I.title; $("#tDesc").innerHTML = I.desc;
+  $("#tPts").innerHTML = I.pts.map(p => `<li>${p}</li>`).join("");
+  $("#tSig").innerHTML = I.sig.map(([k, c]) => `<div><div class="k">${k}</div><pre class="snip">${hl(c)}</pre></div>`).join("");
+  document.querySelectorAll(".ttab").forEach(t => t.setAttribute("aria-selected", +t.dataset.type === type));
+}
+function renderInputs(){
+  const list = (P[type](vals[type]).inputs) || [];
+  $("#inputs").innerHTML = list.map(([k, lbl, d]) => `<label class="field" for="in-${k}">${esc(lbl)}<input type="number" id="in-${k}" value="${vals[type][k] ?? d}" min="-99" max="999"></label>`).join("");
+  list.forEach(([k]) => $("#in-" + k).addEventListener("change", e => { const n = parseInt(e.target.value, 10); if (Number.isFinite(n)) vals[type][k] = Math.max(-99, Math.min(999, n)); e.target.value = vals[type][k]; rebuild(); }));
+}
+function rebuild(){
+  pause();
+  prog = P[type](vals[type]);
+  const fnStart = prog.code.findIndex(l => l[0] === "fh"), fnEnd = prog.code.findIndex(l => l[0] === "fe");
+  $("#code").innerHTML = prog.code.map(([id, t], n) => `<div class="ln ${n >= fnStart && n <= fnEnd ? "fnz" : ""}" data-line="${id}"><span class="no">${n + 1}</span><span class="pcm" aria-hidden="true">▶</span><span>${hl(t) || " "}</span></div>`).join("");
+  drawChart($("#fcMain"), prog.main, "tokM"); drawChart($("#fcFn"), prog.fn, "tokF");
+  $("#fnLabel").textContent = prog.fname;
+  events = prog.script(); idx = 0; show();
+}
+let prevMain = null, prevFn = null;
+function show(){
+  const e = events[idx], pe = idx ? events[idx - 1] : null;
+  document.querySelectorAll("#code .ln").forEach(l => { l.classList.toggle("on", l.dataset.line === e.line); l.classList.toggle("wait", !!e.wait && l.dataset.line === e.wait && e.active === "fn"); });
+  const mark = (svg, ch, node, prevNode, tok, active, waiting) => {
+    svg.querySelectorAll("[data-node]").forEach(g => { g.classList.toggle("on", active && g.dataset.node === node); g.classList.toggle("wait", waiting && g.dataset.node === node); });
+    svg.querySelectorAll("[data-edge]").forEach(p => p.classList.toggle("on", active && !!prevNode && p.dataset.edge === `${prevNode}>${node}`));
+    const t = $("#" + tok), n = node && ch.nodes.find(x => x.id === node);
+    if (n){ t.style.display = ""; t.setAttribute("transform", `translate(${n.cx - n.w/2 + (n.kind === "dec" ? 4 : -2)},${n.cy})`); t.classList.toggle("idle", !active); }
+    else t.style.display = "none";
+  };
+  mark($("#fcMain"), prog.main, e.mainNode, pe && pe.active === "main" ? pe.mainNode : null, "tokM", e.active === "main", e.active === "fn");
+  mark($("#fcFn"), prog.fn, e.fnNode, pe && pe.active === "fn" ? pe.fnNode : null, "tokF", e.active === "fn", false);
+  $("#say").innerHTML = e.say;
+  $("#xfer").innerHTML = e.xfer ? `<div class="xfer ${e.xfer[0]}">${e.xfer[0] === "call" ? "→ call:" : e.xfer[0] === "ret" ? "← return:" : "←"} <span>${esc(e.xfer[1])}</span></div>` : "";
+  const vv = (o, ch) => Object.keys(o).length ? Object.entries(o).map(([k, v]) => `<span class="v ${ch && ch.includes(k) ? "new" : ""}">${k} = ${v}</span>`).join("") : `<span class="empty">no variables</span>`;
+  const fr = [`<div class="frame mf ${e.active === "main" ? "act" : ""}"><div class="fh"><span>main()</span><small>${e.active === "main" ? "running" : "waiting at the call"}</small></div><div class="vs">${vv(e.mainVars, e.active === "main" ? e.changed : null)}</div></div>`];
+  if (e.fnVars) fr.push(`<div class="frame fnf act"><div class="fh"><span>${esc(prog.fname.replace(/\(.*/, "()"))}</span><small>running</small></div><div class="vs">${vv(e.fnVars, e.changed)}</div></div>`);
+  $("#stack").innerHTML = fr.join("");
+  $("#out").innerHTML = esc(e.out).replace(/&lt;in&gt;(.*?)&lt;\/in&gt;/g, '<span class="in">$1</span>') + '<span class="cursor"></span>';
+  $("#prog").style.width = `${(idx / (events.length - 1)) * 100}%`;
+  $("#bBack").disabled = idx === 0; $("#bStep").disabled = idx === events.length - 1;
+  if (idx === events.length - 1) pause();
+}
+const delay = () => [1900, 1400, 1000, 650, 380][+$("#inSpeed").value - 1];
+function play(){ if (idx >= events.length - 1){ idx = 0; show(); } $("#bPlay").textContent = "❚❚ Pause"; tick(); }
+function tick(){ timer = setTimeout(() => { if (idx < events.length - 1){ idx++; show(); tick(); } else pause(); }, delay()); }
+function pause(){ clearTimeout(timer); timer = null; $("#bPlay").textContent = "▶ Play"; }
+function setType(t, scroll){
+  type = t; renderInfo(); renderInputs(); rebuild();
+  try { history.replaceState(null, "", "#type" + t); } catch (e) {}
+  if (scroll) $("#types").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start"});
+}
+document.querySelectorAll(".ttab").forEach(b => b.addEventListener("click", () => setType(+b.dataset.type)));
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => setType(+b.dataset.go, true)));
+$("#bPlay").addEventListener("click", () => timer ? pause() : play());
+$("#bStep").addEventListener("click", () => { pause(); if (idx < events.length - 1){ idx++; show(); } });
+$("#bBack").addEventListener("click", () => { pause(); if (idx > 0){ idx--; show(); } });
+$("#bReset").addEventListener("click", () => { pause(); idx = 0; show(); });
+document.addEventListener("keydown", e => {
+  if (/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName) && e.key === " ") return;
+  if (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.key === "ArrowRight"){ e.preventDefault(); $("#bStep").click(); }
+  else if (e.key === "ArrowLeft"){ e.preventDefault(); $("#bBack").click(); }
+  else if (e.key === " "){ e.preventDefault(); timer ? pause() : play(); }
+  else if (e.key === "r" || e.key === "R") $("#bReset").click();
+});
+
+/* ---------- quick check ---------- */
+const Q = [
+  ["double getPi()", 2, "No parameters, returns a double."],
+  ["void showMenu()", 1, "No parameters, void."],
+  ["void printReceipt(double amount)", 4, "One parameter, void."],
+  ["double average(int a, int b, int c)", 3, "Three parameters go in, one double comes out."],
+  ["int countVowels(string s)", 3, "One parameter, returns an int."],
+  ["void welcome()", 1, "Nothing in, nothing out."]
+];
+$("#quiz").innerHTML = Q.map(([c, a, why], k) => `<div class="q" data-k="${k}"><pre class="snip">${hl(c)}</pre><div class="opts">${[1, 2, 3, 4].map(t => `<button class="opt" data-t="${t}">Type ${t}</button>`).join("")}</div><div class="qfb" aria-live="polite"></div></div>`).join("");
+document.querySelectorAll(".q").forEach(q => q.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+  const [, a, why] = Q[+q.dataset.k], t = +b.dataset.t;
+  q.querySelectorAll(".opt").forEach(o => o.classList.remove("right", "wrong"));
+  b.classList.add(t === a ? "right" : "wrong");
+  q.querySelector(".qfb").innerHTML = t === a ? `<span class="good">Correct.</span> ${why}` : `<span class="bad">Not quite.</span> Look at the return type first, then at the parentheses.`;
+})));
+
+const h = (location.hash || "").match(/^#type([1-4])$/);
+setType(h ? +h[1] : 1);
+})();
+</script>
+
+</body></html>
