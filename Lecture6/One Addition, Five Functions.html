@@ -1,0 +1,559 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>One Addition, Five Functions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: a debugger-like workbench. Code on the left; explanation, memory and console on the right.
+   Colour carries meaning: prototype = amber, definition = teal, call = rose, run = blue. */
+:root{
+  --bg:#EDF1F5; --surface:#FFFFFF; --ink:#16222E; --muted:#526170; --line:#C9D3DD; --on:#FFFFFF; --track:#E3E9EF;
+  --base:#44535F; --proto:#A35600; --def:#00766C; --call:#BE1F58; --run:#1E5CBC;
+  --code-bg:#142030; --code-ink:#E6EDF4; --code-dim:#71849A; --code-edge:#2A3B4E;
+  --k:#7FB6FF; --s:#F5C57A; --f:#5FE0CD; --l:#D9B8FF; --n:#FFA3C2;
+  --z-proto:rgba(240,166,60,.24); --z-def:rgba(60,201,184,.13); --z-call:rgba(245,110,155,.27); --z-move:rgba(255,226,120,.24); --z-now:rgba(118,169,245,.38);
+  --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",Verdana,sans-serif;
+  --mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E151D; --surface:#18222D; --ink:#E8EEF4; --muted:#9FAEBC; --line:#2F3E4D; --on:#0E151D; --track:#223040;
+  --base:#B5C2CE; --proto:#F0A63C; --def:#3CC9B8; --call:#F56E9B; --run:#76A9F5;
+  --code-bg:#121D2A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E151D; --surface:#18222D; --ink:#E8EEF4; --muted:#9FAEBC; --line:#2F3E4D; --on:#0E151D; --track:#223040;
+  --base:#B5C2CE; --proto:#F0A63C; --def:#3CC9B8; --call:#F56E9B; --run:#76A9F5;
+  --code-bg:#121D2A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+h1{font:800 clamp(1.6rem,3vw,2.2rem)/1.1 var(--display);margin:0;text-wrap:balance}
+header p{margin:0;color:var(--muted);flex:1 1 320px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--run);outline-offset:2px}
+
+.tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.tab{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 9px;text-align:left;display:grid;gap:1px;min-width:0}
+.tab small{color:var(--muted);font-size:.74rem}
+.tab code{font:700 .82rem var(--mono);white-space:nowrap}
+.tab:hover{border-color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab[aria-selected="true"] small{color:inherit;opacity:.8}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:6px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.rail{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:0;padding:0;list-style:none}
+.rail li{display:flex;align-items:center;gap:4px}
+.rail li+li::before{content:"→";color:var(--muted);font-size:.8rem}
+.ph{--c:var(--base);background:transparent;border:1.5px solid var(--c);color:var(--c);border-radius:99px;padding:2px 11px;font-weight:700;font-size:.88rem}
+.ph.on{background:var(--c);color:var(--on)}
+.ph.proto{--c:var(--proto)}.ph.def{--c:var(--def)}.ph.call{--c:var(--call)}.ph.run{--c:var(--run)}
+.ctl{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 13px;font-weight:700}
+.btn:hover:not(:disabled){border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.main{background:var(--run);border-color:var(--run);color:var(--on)}
+.count{color:var(--muted);font-size:.86rem;font-variant-numeric:tabular-nums;min-width:4.6em;text-align:right}
+
+.stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);grid-template-areas:"code say" "code side";grid-template-rows:auto 1fr;gap:12px 18px;align-items:start}
+.say{grid-area:say;min-width:0}
+.say h2{font:600 1.32rem/1.2 var(--display);margin:0 0 3px;text-wrap:balance}
+.say p{margin:0;max-width:62ch;min-height:4.5em}
+.codebox{grid-area:code;min-width:0;background:var(--code-bg);border:1px solid var(--code-edge);border-radius:8px;overflow:hidden}
+.codehead{padding:6px 12px;color:var(--code-dim);font:400 .78rem var(--mono);border-bottom:1px solid var(--code-edge)}
+.scroll{overflow-x:auto;padding-block:8px}
+#code{--row:1.5em;position:relative;font:400 clamp(13px,1.1vw,14.5px)/1.5 var(--mono);min-width:42ch;color:var(--code-ink);transition:height .6s ease}
+.ln{position:absolute;left:0;width:2.2em;text-align:right;color:var(--code-dim);user-select:none;z-index:2}
+.cl{position:absolute;left:0;right:0;height:var(--row);padding-left:3.5em;padding-right:1em;white-space:pre;transition:top .8s cubic-bezier(.5,0,.15,1),opacity .4s,background-color .35s}
+.cl.z-proto{background:var(--z-proto)}.cl.z-def{background:var(--z-def)}.cl.z-call{background:var(--z-call)}.cl.z-move{background:var(--z-move)}
+.cl.now{background:var(--z-now)}
+.cl.mv{z-index:3}
+.k{color:var(--k)}.s{color:var(--s)}.f{color:var(--f);font-weight:700}.l{color:var(--l)}.n{color:var(--n)}
+#ptr{position:absolute;left:2.05em;width:1.2em;height:var(--row);color:#FFD166;font-weight:700;z-index:4;transition:top .55s cubic-bezier(.5,0,.15,1),opacity .2s}
+
+.side{grid-area:side;min-width:0;display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:11px 13px;min-width:0}
+.card h3{margin:0 0 7px;font-size:.76rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.job{display:grid;grid-template-columns:5.6em minmax(0,1fr);gap:8px;align-items:center;margin-bottom:5px;font-size:.94rem}
+.track{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--track);border-radius:5px;font:400 .84rem/1.9 var(--mono);text-align:center;color:var(--muted)}
+.pill{position:absolute;inset:0 auto 0 0;width:50%;border-radius:5px;background:var(--base);color:var(--on);font-weight:700;transition:left .7s cubic-bezier(.5,0,.15,1),background-color .4s}
+.job.toadd .pill{left:50%;background:var(--def)}
+.data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 14px;margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:.93rem}
+.data b{display:block;font-size:.76rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.anat{display:flex;flex-wrap:wrap;gap:6px 5px;align-items:stretch}
+.tok{--c:var(--base);display:grid;grid-template-rows:auto auto;gap:3px;flex:0 1 auto;min-width:0;max-width:100%}
+.tok code{font:700 .96rem var(--mono);border:1.5px solid var(--c);border-radius:5px;padding:2px 8px;text-align:center;white-space:nowrap}
+.tok span{font-size:.78rem;line-height:1.2;color:var(--muted);text-align:center;max-width:12em;justify-self:center}
+.anat.proto .tok{--c:var(--proto)}.anat.def .tok{--c:var(--def)}.anat.call .tok{--c:var(--call)}
+.note{margin:9px 0 0;font-size:.94rem}
+.frames{display:grid;gap:8px}
+.frame{border:1.5px solid var(--base);border-radius:6px;padding:6px 9px 9px;transition:opacity .4s}
+.frame.fn{border-color:var(--def)}
+.frame.done{opacity:.5;border-style:dashed}
+.frame b{font:700 .84rem var(--mono)}
+.frame em{font-style:normal;font-size:.8rem;color:var(--muted);margin-left:6px}
+.vars{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px;min-height:3.2em}
+.empty{color:var(--muted);font-size:.86rem;align-self:center}
+.var{display:grid;justify-items:center;font:400 .78rem var(--mono);color:var(--muted);gap:2px}
+.box{min-width:3em;height:2.2em;padding:0 8px;display:grid;place-items:center;border:1.5px solid var(--ink);border-radius:4px;background:var(--bg);color:var(--ink);font:700 1.1rem var(--mono)}
+.box.unk{color:var(--muted);font-weight:400}
+.box.ref{border-style:dashed;border-color:var(--call);color:var(--call);font-size:.82rem;background:transparent}
+.box.ask>*,.box.ask{color:transparent}
+.box.pulse{animation:pulse .8s ease}
+@keyframes pulse{0%{background:var(--run);color:var(--on)}100%{background:var(--bg)}}
+.chip{position:fixed;z-index:20;background:var(--run);color:var(--on);font:700 1.05rem var(--mono);padding:3px 10px;border-radius:5px;pointer-events:none}
+#console{background:var(--code-bg);color:var(--code-ink);border-radius:6px;padding:8px 11px;font:400 .92rem/1.5 var(--mono);white-space:pre-wrap;min-height:4.4em;overflow-wrap:anywhere}
+#console i{font-style:normal;color:#FFD166;font-weight:700}
+#console::after{content:"▏";color:var(--code-dim)}
+
+.compare h2{font:600 1.32rem/1.2 var(--display);margin:0 0 3px}
+.compare>p{margin:0 0 9px;color:var(--muted)}
+.tw{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:.94rem}
+th,td{padding:7px 11px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-size:.76rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+td code{font:400 .86rem var(--mono);white-space:nowrap}
+td .go{background:none;border:0;padding:0;font:700 .86rem var(--mono);color:var(--run);text-decoration:underline;white-space:nowrap}
+
+@media (max-width:1000px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:820px){
+  .stage{grid-template-columns:minmax(0,1fr);grid-template-areas:"say" "code" "side";grid-template-rows:none}
+  .say p{min-height:0}
+}
+@media (max-width:520px){
+  .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tab code{font-size:.74rem}
+  .rail li+li::before{display:none}
+  .ph{font-size:.78rem;padding:2px 8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>One addition, five functions</h1>
+    <p>Every animation starts from the same addition in <code>main</code>. Then we build the prototype, the definition and the call.</p>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Function types"></nav>
+  <div class="bar">
+    <ol class="rail" id="rail" aria-label="Stages"></ol>
+    <div class="ctl">
+      <button class="btn" id="restart" type="button">Restart</button>
+      <button class="btn" id="back" type="button">Back</button>
+      <button class="btn main" id="play" type="button">Play</button>
+      <button class="btn" id="next" type="button">Next</button>
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+  <section class="stage">
+    <div class="say" aria-live="polite"><h2 id="sayT"></h2><p id="sayP"></p></div>
+    <div class="codebox">
+      <div class="codehead">add.cpp</div>
+      <div class="scroll"><div id="code"><span id="ptr" aria-hidden="true">▶</span></div></div>
+    </div>
+    <div class="side">
+      <div class="card" id="planCard"><h3>Who does each job?</h3><div id="plan"></div></div>
+      <div class="card" id="anatCard"><h3 id="anatT"></h3><div class="anat" id="anat"></div><p class="note" id="anatN"></p></div>
+      <div class="card" id="memCard"><h3>Memory</h3><div class="frames" id="frames"></div></div>
+      <div class="card" id="conCard"><h3>Console</h3><div id="console"></div></div>
+    </div>
+  </section>
+  <section class="compare">
+    <h2>The five types side by side</h2>
+    <p>Input values: 5 and 3. Every type prints Sum = 8. Only the work and the data flow change.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Prototype</th><th>Reads input</th><th>Adds</th><th>Prints</th><th>Data going in</th><th>Data coming back</th><th>Call in main</th></tr></thead>
+      <tbody id="cmp"></tbody>
+    </table></div>
+  </section>
+</div>
+
+<script>
+const TEXT={inc:'#include <iostream>',ns:'using namespace std;',mainH:'int main()',mainO:'{',
+ decl:'    int num1, num2, sum;',prompt:'    cout << "Enter two numbers: ";',cin:'    cin >> num1 >> num2;',
+ calc:'    sum = num1 + num2;',print:'    cout << "Sum = " << sum << endl;',ret:'    return 0;',mainC:'}',fo:'{',fc:'}'};
+const _=null, HEAD=['inc','ns',_], BASE_MAIN=['mainH','mainO','decl',_,'prompt','cin',_,'calc','print',_,'ret','mainC'];
+const JOB_NAMES=['Read input','Add','Print'];
+
+/* --- the five types --- */
+const TYPES=[
+{id:'type-1',no:1,sig:'void add()',plain:'nothing in, nothing back',
+ moved:['decl','prompt','cin','calc','print'],jobs:['add','add','add'],dataIn:'Nothing',dataOut:'Nothing',
+ planSay:'For this type, main gives all the work away. The yellow lines will move into add(). Only return 0 stays.',
+ proto:'void add();',header:'void add()',call:'    add();',
+ protoA:[['void','sends nothing back'],['add','function name'],['()','takes no values'],[';','ends the prototype']],
+ defA:[['void','same as prototype'],['add','same name'],['()','no parameters'],['{ }','body goes here']],
+ callA:[['add','function name'],['()','no values to pass'],[';','ends the statement']],
+ afterMove:['mainH','mainO',_,'ret','mainC'],
+ body:['decl',_,'prompt','cin',_,'calc','print'],
+ final:['mainH','mainO','call',_,'ret','mainC'],
+ moveSay:'All five lines slide into the body of add(). main now has a gap, and nothing in main runs the addition yet.',
+ callSay:'Write add(); in the gap. There are no types in a call, and no values to pass.',
+ trace:[
+  {at:'mainH',t:'Run: start in main',say:'The program always starts at main, even though add() is written in the file too. main has no variables.'},
+  {at:'call',t:'Run: main calls add()',say:'main pauses here. The computer jumps to add(). No values travel with it.'},
+  {at:'fh',t:'Run: enter add()',say:'add() starts and gets its own space in memory.',frame:'open'},
+  {at:'decl',t:'Run: create variables',say:'The variables now belong to add(), so main cannot use them.',decl:'add:num1,num2,sum'},
+  {at:'prompt',t:'Run: ask for input',say:'add() shows the message on the console.',out:'Enter two numbers: '},
+  {at:'cin',t:'Run: read input',say:'The user types 5 and 3. They go into num1 and num2.',inp:'5 3',set:{'add.num1':5,'add.num2':3}},
+  {at:'calc',t:'Run: add',say:'5 + 3 = 8. The answer goes into sum.',fly:[['add.num1','add.sum'],['add.num2','add.sum']],set:{'add.sum':8}},
+  {at:'print',t:'Run: print',say:'add() prints the answer itself.',out:'Sum = 8\n'},
+  {at:'fc',t:'Run: add() ends',say:'The closing brace ends add(). Its variables are removed. A void function sends nothing back.',frame:'done'},
+  {at:'ret',t:'Done',say:'main continues after the call and ends. Type 1 keeps everything inside add(), so it is simple, but main can never use the answer.',frame:'none'}]},
+{id:'type-2',no:2,sig:'void add(int, int)',plain:'two values in, nothing back',
+ moved:['calc','print'],jobs:['main','add','add'],dataIn:'2 copies: num1, num2',dataOut:'Nothing',
+ planSay:'main keeps the input job. The add and print lines move to add(). So add() needs the two numbers from main, and sum moves too.',
+ proto:'void add(int, int);',header:'void add(int a, int b)',call:'    add(num1, num2);',
+ protoA:[['void','sends nothing back'],['add','function name'],['(int, int)','takes 2 int values'],[';','ends the prototype']],
+ defA:[['void','same as prototype'],['add','same name'],['(int a, int b)','types and names'],['{ }','body goes here']],
+ callA:[['add','function name'],['(num1, num2)','values to pass, no types'],[';','ends the statement']],
+ defNote:'The prototype only needs the types. The definition needs names too, so the body can use a and b. There is no semicolon after the header.',
+ afterMove:['mainH','mainO',['decl','    int num1, num2;'],_,'prompt','cin',_,_,'ret','mainC'],
+ body:[['dsum','    int sum;'],_,['calc','    sum = a + b;'],'print'],
+ final:['mainH','mainO',['decl','    int num1, num2;'],_,'prompt','cin',_,'call',_,'ret','mainC'],
+ moveSay:'The lines slide into add(). Inside add(), the numbers are now called a and b, so the line changes to sum = a + b.',
+ callSay:'Write add(num1, num2); in the gap. The value of num1 goes to a. The value of num2 goes to b. Order matters.',
+ trace:[
+  {at:'mainH',t:'Run: start in main',say:'The program always starts at main.'},
+  {at:'decl',t:'Run: create variables',say:'main creates num1 and num2.',decl:'main:num1,num2'},
+  {at:'prompt',t:'Run: ask for input',say:'main shows the message on the console.',out:'Enter two numbers: '},
+  {at:'cin',t:'Run: read input',say:'The user types 5 and 3.',inp:'5 3',set:{'main.num1':5,'main.num2':3}},
+  {at:'call',t:'Run: main calls add()',say:'main pauses and passes the two values to add().'},
+  {at:'fh',t:'Run: copy the values',say:'a gets a copy of num1. b gets a copy of num2. This is pass by value.',frame:'open',decl:'add:a,b',fly:[['main.num1','add.a'],['main.num2','add.b']],set:{'add.a':5,'add.b':3}},
+  {at:'dsum',t:'Run: create sum',say:'add() creates its own variable, sum.',decl:'add:sum'},
+  {at:'calc',t:'Run: add',say:'5 + 3 = 8. The answer goes into sum.',fly:[['add.a','add.sum'],['add.b','add.sum']],set:{'add.sum':8}},
+  {at:'print',t:'Run: print',say:'add() prints the answer.',out:'Sum = 8\n'},
+  {at:'fc',t:'Run: add() ends',say:'The closing brace ends add(). a, b and sum are removed. Nothing comes back to main.',frame:'done'},
+  {at:'ret',t:'Done',say:'main continues after the call and ends. Type 2 lets main choose the numbers, but main still does not get the answer.',frame:'none'}]},
+{id:'type-3',no:3,sig:'int add(int, int)',plain:'two values in, one value back',
+ moved:['calc'],jobs:['main','add','main'],dataIn:'2 copies: num1, num2',dataOut:'1 value: the total',
+ planSay:'Only the adding moves to add(). main keeps input and print, so add() must send the answer back to main.',
+ proto:'int add(int, int);',header:'int add(int a, int b)',call:'    sum = add(num1, num2);',
+ protoA:[['int','sends back an int'],['add','function name'],['(int, int)','takes 2 int values'],[';','ends the prototype']],
+ defA:[['int','same as prototype'],['add','same name'],['(int a, int b)','types and names'],['{ }','body goes here']],
+ callA:[['sum =','keeps the answer'],['add','function name'],['(num1, num2)','values to pass, no types'],[';','ends the statement']],
+ defNote:'The return type is int, so the body must end with a return statement that gives an int.',
+ afterMove:['mainH','mainO','decl',_,'prompt','cin',_,_,'print',_,'ret','mainC'],
+ body:[['dsum','    int total;'],_,['calc','    total = a + b;'],['fret','    return total;']],
+ final:['mainH','mainO','decl',_,'prompt','cin',_,'call','print',_,'ret','mainC'],
+ moveSay:'The adding line slides into add() and becomes total = a + b. A new line appears: return total; sends the answer back.',
+ callSay:'Write sum = add(num1, num2); in the gap. The returned value needs a place to go, so main stores it in sum.',
+ trace:[
+  {at:'mainH',t:'Run: start in main',say:'The program always starts at main.'},
+  {at:'decl',t:'Run: create variables',say:'main creates num1, num2 and sum.',decl:'main:num1,num2,sum'},
+  {at:'prompt',t:'Run: ask for input',say:'main shows the message on the console.',out:'Enter two numbers: '},
+  {at:'cin',t:'Run: read input',say:'The user types 5 and 3.',inp:'5 3',set:{'main.num1':5,'main.num2':3}},
+  {at:'call',t:'Run: main calls add()',say:'main pauses and passes the two values to add().'},
+  {at:'fh',t:'Run: copy the values',say:'a gets a copy of num1. b gets a copy of num2.',frame:'open',decl:'add:a,b',fly:[['main.num1','add.a'],['main.num2','add.b']],set:{'add.a':5,'add.b':3}},
+  {at:'dsum',t:'Run: create total',say:'add() creates its own variable, total.',decl:'add:total'},
+  {at:'calc',t:'Run: add',say:'5 + 3 = 8. The answer goes into total.',fly:[['add.a','add.total'],['add.b','add.total']],set:{'add.total':8}},
+  {at:'fret',t:'Run: return the value',say:'return total; sends the value 8 back to the place of the call. add() ends now.',frame:'done'},
+  {at:'call',t:'Run: back in main',say:'The call gives the value 8, so the line works like sum = 8. Now main has the answer.',fly:[['add.total','main.sum']],set:{'main.sum':8}},
+  {at:'print',t:'Run: print',say:'main prints sum.',frame:'none',out:'Sum = 8\n'},
+  {at:'ret',t:'Done',say:'Type 3 is the most reusable. The function only does the adding, and main decides what to do with the answer.'}]},
+{id:'type-4',no:4,sig:'int add()',plain:'nothing in, one value back',
+ moved:['decl','prompt','cin','calc'],jobs:['add','add','main'],dataIn:'Nothing',dataOut:'1 value: the total',
+ planSay:'add() reads the input and adds. main only keeps the print job, so add() must send the answer back to main.',
+ proto:'int add();',header:'int add()',call:'    sum = add();',
+ protoA:[['int','sends back an int'],['add','function name'],['()','takes no values'],[';','ends the prototype']],
+ defA:[['int','same as prototype'],['add','same name'],['()','no parameters'],['{ }','body goes here']],
+ callA:[['sum =','keeps the answer'],['add','function name'],['()','no values to pass'],[';','ends the statement']],
+ defNote:'The return type is int, so the body must end with a return statement that gives an int.',
+ afterMove:['mainH','mainO',['dmain','    int sum;'],_,_,'print',_,'ret','mainC'],
+ body:[['decl','    int num1, num2, total;'],_,'prompt','cin',_,['calc','    total = num1 + num2;'],['fret','    return total;']],
+ final:['mainH','mainO',['dmain','    int sum;'],_,'call','print',_,'ret','mainC'],
+ moveSay:'The lines slide into add(). main keeps only int sum;. A new line appears in add(): return total; sends the answer back.',
+ callSay:'Write sum = add(); in the gap. No values go in, but one value comes back, so main stores it in sum.',
+ trace:[
+  {at:'mainH',t:'Run: start in main',say:'The program always starts at main.'},
+  {at:'dmain',t:'Run: create sum',say:'main creates sum. It has no value yet.',decl:'main:sum'},
+  {at:'call',t:'Run: main calls add()',say:'main pauses here. The computer jumps to add(). No values travel with it.'},
+  {at:'fh',t:'Run: enter add()',say:'add() starts and gets its own space in memory.',frame:'open'},
+  {at:'decl',t:'Run: create variables',say:'add() creates num1, num2 and total.',decl:'add:num1,num2,total'},
+  {at:'prompt',t:'Run: ask for input',say:'add() shows the message on the console.',out:'Enter two numbers: '},
+  {at:'cin',t:'Run: read input',say:'The user types 5 and 3.',inp:'5 3',set:{'add.num1':5,'add.num2':3}},
+  {at:'calc',t:'Run: add',say:'5 + 3 = 8. The answer goes into total.',fly:[['add.num1','add.total'],['add.num2','add.total']],set:{'add.total':8}},
+  {at:'fret',t:'Run: return the value',say:'return total; sends the value 8 back to the place of the call. add() ends now.',frame:'done'},
+  {at:'call',t:'Run: back in main',say:'The call gives the value 8, so the line works like sum = 8.',fly:[['add.total','main.sum']],set:{'main.sum':8}},
+  {at:'print',t:'Run: print',say:'main prints sum.',frame:'none',out:'Sum = 8\n'},
+  {at:'ret',t:'Done',say:'Type 4 is useful when the function can get the data by itself and main only needs the answer.'}]},
+{id:'type-5',no:5,sig:'void add(int &)',plain:'sum shared by reference',
+ moved:['decl','prompt','cin','calc'],jobs:['add','add','main'],dataIn:'sum itself, not a copy',dataOut:'No return. add() fills sum directly',
+ planSay:'add() reads the input and adds. main prints, so main needs the answer. This time add() will not return it. It will write directly into sum in main.',
+ proto:'void add(int &);',header:'void add(int &result)',call:'    add(sum);',
+ protoA:[['void','no return value'],['add','function name'],['(int &)','takes an int by reference'],[';','ends the prototype']],
+ defA:[['void','same as prototype'],['add','same name'],['(int &result)','result is another name for the variable passed'],['{ }','body goes here']],
+ callA:[['add','function name'],['(sum)','pass the variable, no & here'],[';','ends the statement']],
+ protoNote:'The & means "reference". The function will use the caller\'s variable, not a copy.',
+ defNote:'Write & in the prototype and the definition, but not in the call.',
+ afterMove:['mainH','mainO',['dmain','    int sum;'],_,_,'print',_,'ret','mainC'],
+ body:[['decl','    int num1, num2;'],_,'prompt','cin',_,['calc','    result = num1 + num2;']],
+ final:['mainH','mainO',['dmain','    int sum;'],_,'call','print',_,'ret','mainC'],
+ moveSay:'The lines slide into add(). The adding line becomes result = num1 + num2. There is no return statement, because the function is void.',
+ callSay:'Write add(sum); in the gap. Because of the &, result becomes another name for sum.',
+ trace:[
+  {at:'mainH',t:'Run: start in main',say:'The program always starts at main.'},
+  {at:'dmain',t:'Run: create sum',say:'main creates sum. It has no value yet.',decl:'main:sum'},
+  {at:'call',t:'Run: main calls add()',say:'main passes sum by reference. No copy is made.'},
+  {at:'fh',t:'Run: result joins sum',say:'result has no box of its own. It is another name for the sum box in main.',frame:'open',decl:'add:result',set:{'add.result':{ref:'sum'}}},
+  {at:'decl',t:'Run: create variables',say:'add() creates num1 and num2.',decl:'add:num1,num2'},
+  {at:'prompt',t:'Run: ask for input',say:'add() shows the message on the console.',out:'Enter two numbers: '},
+  {at:'cin',t:'Run: read input',say:'The user types 5 and 3.',inp:'5 3',set:{'add.num1':5,'add.num2':3}},
+  {at:'calc',t:'Run: add',say:'5 + 3 = 8. Writing to result really writes to sum, so the box in main changes.',fly:[['add.num1','main.sum'],['add.num2','main.sum']],set:{'main.sum':8}},
+  {at:'fc',t:'Run: add() ends',say:'The closing brace ends add(). There was no return, but sum in main keeps the value 8.',frame:'done'},
+  {at:'print',t:'Run: print',say:'main prints sum. The value is 8.',frame:'none',out:'Sum = 8\n'},
+  {at:'ret',t:'Done',say:'Type 5 lets a void function change a variable in main. The & makes this possible.'}]}
+];
+
+const PHASES=[['base','Base'],['proto','Prototype'],['def','Definition'],['call','Call'],['run','Run']];
+
+/* --- step builders --- */
+function fold(trace){
+  let mem={main:{o:[],v:{}},add:{o:[],v:{}}},frame='none',con='';
+  return trace.map(op=>{
+    if(op.frame==='open')mem.add={o:[],v:{}};
+    if(op.frame)frame=op.frame;
+    if(op.frame==='none')mem.add={o:[],v:{}};
+    if(op.decl){const[f,l]=op.decl.split(':');l.split(',').forEach(n=>{mem[f].o.push(n);mem[f].v[n]='?'})}
+    for(const k in op.set||{}){const[f,n]=k.split('.');mem[f].v[n]=op.set[k]}
+    if(op.out)con+=op.out;
+    if(op.inp)con+='<i>'+op.inp+'</i>\n';
+    return{phase:'run',t:op.t,say:op.say,at:op.at,fly:op.fly,frame,mem:JSON.parse(JSON.stringify(mem)),con};
+  });
+}
+function lay(list,zones,extra){
+  return list.map((x,i)=>{
+    if(x===_)return null;
+    const id=Array.isArray(x)?x[0]:x, text=Array.isArray(x)?x[1]:(extra&&extra[id])||TEXT[id];
+    return{id,text,zone:zones[id]||''};
+  });
+}
+function buildType(c){
+  const mv={};c.moved.forEach(i=>mv[i]='z-move');
+  const ex={proto:c.proto,fh:c.header,call:c.call};
+  const pz={proto:'z-proto'}, dz={...pz,fh:'z-def',fo:'z-def',fc:'z-def'};
+  const bodyZ={...dz};c.body.forEach(x=>{if(x)bodyZ[Array.isArray(x)?x[0]:x]='z-def'});
+  const fz={...bodyZ,call:'z-call'};
+  const fn=b=>[_,'fh','fo',...b,'fc'];
+  const steps=[
+   {phase:'base',t:'Start from the base program',say:'This is the same addition program. All the work is in main: read input, add, print.',lines:lay([...HEAD,...BASE_MAIN],{}),moved:false},
+   {phase:'base',t:'Plan: what moves out of main?',say:c.planSay,lines:lay([...HEAD,...BASE_MAIN],mv),moved:true},
+   {phase:'proto',t:'Step 1: Write the prototype',say:'The prototype goes above main. The compiler reads from top to bottom, so it must know about add() before main calls it.',
+    lines:lay([...HEAD,'proto',_,...BASE_MAIN],{...mv,...pz},ex),moved:true,
+    anat:['proto','Parts of the prototype',c.protoA,c.protoNote||'']},
+   {phase:'def',t:'Step 2: Write the definition header',say:'The definition goes below main. Its first line matches the prototype, but it has no semicolon. The braces will hold the work.',
+    lines:lay([...HEAD,'proto',_,...BASE_MAIN,...fn([])],{...mv,...dz},ex),moved:true,
+    anat:['def','Parts of the definition',c.defA,c.defNote||'']},
+   {phase:'def',t:'Step 2: Move the work into the body',say:c.moveSay,
+    lines:lay([...HEAD,'proto',_,...c.afterMove,...fn(c.body)],bodyZ,ex),moved:true,
+    anat:['def','Parts of the definition',c.defA,c.defNote||'']},
+   {phase:'call',t:'Step 3: Write the call',say:c.callSay,
+    lines:lay([...HEAD,'proto',_,...c.final,...fn(c.body)],fz,ex),moved:true,
+    anat:['call','Parts of the call',c.callA,'The function only runs when it is called. Without this line, add() does nothing.']}
+  ];
+  const finalLines=lay([...HEAD,'proto',_,...c.final,...fn(c.body)],fz,ex);
+  fold(c.trace).forEach(s=>steps.push({...s,lines:finalLines}));
+  return steps;
+}
+const baseLines=lay([...HEAD,...BASE_MAIN],{});
+const BASE_TAB={id:'base',sig:'main only',label:'Start here',phases:['base','run'],steps:[
+ {phase:'base',t:'The base program: everything in main',say:'This program adds two numbers. It has three jobs: read input, add, print. We will reuse it for all five function types.',lines:baseLines,frame:'none',mem:{main:{o:[],v:{}},add:{o:[],v:{}}},con:''},
+ ...fold([
+  {at:'mainH',t:'Run: start in main',say:'Every C++ program starts at main.'},
+  {at:'decl',t:'Run: create variables',say:'Three boxes appear in memory. They have no useful value yet.',decl:'main:num1,num2,sum'},
+  {at:'prompt',t:'Job 1: read input',say:'cout shows the message on the console.',out:'Enter two numbers: '},
+  {at:'cin',t:'Job 1: read input',say:'The user types 5 and 3. cin puts them into num1 and num2.',inp:'5 3',set:{'main.num1':5,'main.num2':3}},
+  {at:'calc',t:'Job 2: add',say:'5 + 3 = 8. The answer goes into sum.',fly:[['main.num1','main.sum'],['main.num2','main.sum']],set:{'main.sum':8}},
+  {at:'print',t:'Job 3: print',say:'cout prints the answer.',out:'Sum = 8\n'},
+  {at:'ret',t:'Now split the work',say:'This works, but main does every job. A function lets us give some jobs to add(). Press Next type to see the first way.'}
+ ]).map(s=>({...s,lines:baseLines}))
+]};
+TYPES.forEach(c=>{c.steps=buildType(c);c.phases=PHASES.map(p=>p[0]);c.label='Type '+c.no});
+const TABS=[BASE_TAB,...TYPES];
+
+/* --- rendering --- */
+const $=i=>document.getElementById(i);
+const code=$('code'),ptr=$('ptr');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+let tab=TABS[0],idx=0,timer=null,playing=false,els=new Map(),cancelFly=[];
+
+function hl(s){
+  const re=/("(?:[^"\\]|\\.)*")|(#include\s*<[^>]+>)|\b(int|void|return|using|namespace)\b|\b(add)\b|\b(cout|cin|endl|main)\b|\b(\d+)\b/g;
+  const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let out='',p=0,m;
+  while((m=re.exec(s))){
+    out+=esc(s.slice(p,m.index));
+    const c=m[1]?'s':m[2]?'k':m[3]?'k':m[4]?'f':m[5]?'l':'n';
+    out+=`<span class="${c}">${esc(m[0])}</span>`;p=m.index+m[0].length;
+  }
+  return out+esc(s.slice(p));
+}
+function renderCode(step,animate){
+  const lines=step.lines,seen=new Set();
+  code.style.height=`calc(var(--row) * ${lines.length})`;
+  code.querySelectorAll('.ln').forEach(n=>n.remove());
+  lines.forEach((_l,i)=>{const n=document.createElement('span');n.className='ln';n.style.top=`calc(var(--row) * ${i})`;n.textContent=i+1;code.appendChild(n)});
+  let stag=0;
+  lines.forEach((l,i)=>{
+    if(!l)return;seen.add(l.id);
+    let el=els.get(l.id),fresh=false;
+    if(!el){el=document.createElement('div');el.className='cl';el.dataset.id=l.id;el.style.opacity=animate?0:1;el.style.transition=animate?'':'none';code.appendChild(el);els.set(l.id,el);fresh=true}
+    const oldRow=+el.dataset.row;
+    const far=!fresh&&animate&&Math.abs(oldRow-i)>=4;
+    el.dataset.row=i;
+    el.style.transitionDelay=far?(stag++*.12)+'s':(fresh&&animate?'.45s':'0s');
+    el.classList.toggle('mv',far);
+    el.style.top=`calc(var(--row) * ${i})`;
+    if(el.dataset.t!==l.text){el.innerHTML=hl(l.text)||' ';el.dataset.t=l.text}
+    el.className='cl'+(l.zone?' '+l.zone:'')+(far?' mv':'')+(step.at===l.id?' now':'');
+    if(fresh&&animate)requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.opacity=1}));
+  });
+  els.forEach((el,id)=>{if(!seen.has(id)){els.delete(id);if(animate){el.style.opacity=0;setTimeout(()=>el.remove(),400)}else el.remove()}});
+  const r=step.at?lines.findIndex(l=>l&&l.id===step.at):-1;
+  ptr.style.opacity=r<0?0:1;
+  if(r>=0)ptr.style.top=`calc(var(--row) * ${r})`;
+}
+function setPlan(step,c){
+  const rows=[...$('plan').querySelectorAll('.job')];
+  (c.jobs||['main','main','main']).forEach((owner,i)=>{
+    const who=step.moved?owner:'main';
+    rows[i].classList.toggle('toadd',who==='add');
+    rows[i].querySelector('.pill').textContent=who==='add'?'add()':'main()';
+  });
+  const d=$('plan').querySelector('.data');
+  if(d)d.innerHTML=step.moved?`<div><b>Goes in</b>${c.dataIn}</div><div><b>Comes back</b>${c.dataOut}</div>`:'<div><b>Goes in</b>No function yet</div><div><b>Comes back</b>No function yet</div>';
+}
+function buildPlan(){
+  $('plan').innerHTML=JOB_NAMES.map(n=>`<div class="job"><span>${n}</span><div class="track"><span>main()</span><span>add()</span><span class="pill">main()</span></div></div>`).join('')+'<div class="data"></div>';
+}
+function varHTML(frame,n,val,prev,ask){
+  const key=frame+'.'+n;
+  if(val&&val.ref)return `<div class="var"><div class="box ref" data-v="${key}">→ ${val.ref} in main</div>&amp;${n}</div>`;
+  const unk=val==='?';
+  const changed=!ask&&prev!==undefined&&prev!==val&&!unk;
+  return `<div class="var"><div class="box${unk?' unk':''}${changed?' pulse':''}${ask?' ask':''}" data-v="${key}">${val}</div>${n}</div>`;
+}
+function renderMem(step,prev,fly){
+  const asks=new Set((fly||[]).map(f=>f[1]));
+  const frame=(name,cls,note)=>{
+    const m=step.mem[name],pm=prev&&prev.mem?prev.mem[name]:null;
+    const vars=m.o.map(n=>varHTML(name,n,m.v[n],pm?pm.v[n]:undefined,asks.has(name+'.'+n))).join('')||'<span class="empty">No variables yet</span>';
+    return `<div class="frame ${cls}"><b>${name}()</b><em>${note}</em><div class="vars">${vars}</div></div>`;
+  };
+  const inAdd=step.frame==='open';
+  let h=frame('main','',inAdd?'paused':'');
+  if(step.frame==='open')h+=frame('add','fn','running');
+  if(step.frame==='done')h+=frame('add','fn done','finished: variables removed');
+  $('frames').innerHTML=h;
+  $('console').innerHTML=step.con;
+}
+function playFly(fly){
+  if(!fly||reduce){document.querySelectorAll('.box.ask').forEach(b=>b.classList.remove('ask'));return}
+  fly.forEach((f,i)=>{
+    const a=document.querySelector(`[data-v="${f[0]}"]`),b=document.querySelector(`[data-v="${f[1]}"]`);
+    if(!a||!b){if(b)b.classList.remove('ask');return}
+    const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();
+    const chip=document.createElement('div');chip.className='chip';chip.textContent=a.textContent;
+    chip.style.left=ra.left+'px';chip.style.top=ra.top+'px';
+    document.body.appendChild(chip);
+    const an=chip.animate([
+      {transform:'translate(0,0) scale(1)',opacity:0},
+      {opacity:1,offset:.12},
+      {transform:`translate(${(rb.left-ra.left)/2}px,${(rb.top-ra.top)/2-26}px) scale(1.12)`,offset:.55},
+      {transform:`translate(${rb.left-ra.left}px,${rb.top-ra.top}px) scale(1)`,opacity:1}
+    ],{duration:1000,delay:250+i*420,easing:'ease-in-out',fill:'both'});
+    cancelFly.push(()=>{an.cancel();chip.remove()});
+    an.onfinish=()=>{chip.remove();b.classList.remove('ask');b.classList.remove('pulse');void b.offsetWidth;b.classList.add('pulse')};
+  });
+}
+function clearFly(){cancelFly.forEach(f=>f());cancelFly=[]}
+function renderAnat(step){
+  const has=!!step.anat;
+  $('anatCard').hidden=!has;
+  if(!has)return;
+  const[kind,title,parts,note]=step.anat;
+  $('anatT').textContent=title;
+  $('anat').className='anat '+kind;
+  $('anat').innerHTML=parts.map(p=>`<div class="tok"><code>${p[0].replace(/&/g,'&amp;')}</code><span>${p[1]}</span></div>`).join('');
+  $('anatN').textContent=note;$('anatN').hidden=!note;
+}
+function render(animate,prevIdx){
+  clearFly();
+  const step=tab.steps[idx],isRun=step.phase==='run'||tab===BASE_TAB,prev=prevIdx!=null?tab.steps[prevIdx]:null;
+  $('sayT').textContent=step.t;$('sayP').textContent=step.say;
+  renderCode(step,animate);
+  $('planCard').hidden=isRun;$('memCard').hidden=!isRun;$('conCard').hidden=!isRun;
+  renderAnat(step);
+  if(!isRun)setPlan(step,tab);
+  if(isRun){
+    const forward=animate&&prevIdx===idx-1&&step.fly&&!reduce;
+    renderMem(step,forward||prevIdx===idx-1?prev:null,forward?step.fly:null);
+    if(forward)playFly(step.fly);
+  }
+  document.querySelectorAll('.ph').forEach(p=>p.classList.toggle('on',p.dataset.p===step.phase));
+  $('count').textContent=`${idx+1} of ${tab.steps.length}`;
+  $('back').disabled=idx===0;
+  const last=idx===tab.steps.length-1,ti=TABS.indexOf(tab);
+  $('next').textContent=last?'Next type':'Next';
+  $('next').disabled=last&&ti===TABS.length-1;
+}
+function go(i,animate=true){
+  if(i<0||i>=tab.steps.length)return;
+  const p=idx;idx=i;render(animate,p);
+}
+function stop(){playing=false;clearTimeout(timer);$('play').textContent='Play'}
+function schedule(){
+  clearTimeout(timer);
+  const s=tab.steps[idx];
+  timer=setTimeout(()=>{
+    if(idx<tab.steps.length-1){go(idx+1);schedule()}else stop();
+  },2600+s.say.length*42+(s.fly?s.fly.length*420+800:0));
+}
+function openTab(t,updateHash=true){
+  stop();clearFly();tab=t;idx=0;
+  els.forEach(e=>e.remove());els.clear();
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.id===t.id));
+  $('rail').innerHTML=t.phases.map(k=>{const p=PHASES.find(x=>x[0]===k);return `<li><button type="button" class="ph ${k}" data-p="${k}">${p[1]}</button></li>`}).join('');
+  buildPlan();
+  render(false,null);
+  if(updateHash){try{history.replaceState(null,'','#'+t.id)}catch(e){try{location.hash=t.id}catch(_e){}}}
+}
+
+/* --- wiring --- */
+$('tabs').innerHTML=TABS.map(t=>`<button class="tab" role="tab" type="button" data-id="${t.id}"><small>${t.label}</small><code>${t.sig.replace(/&/g,'&amp;')}</code></button>`).join('');
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)openTab(TABS.find(t=>t.id===b.dataset.id))});
+$('rail').addEventListener('click',e=>{const b=e.target.closest('.ph');if(!b)return;stop();const i=tab.steps.findIndex(s=>s.phase===b.dataset.p);if(i>=0)go(i)});
+$('next').addEventListener('click',()=>{
+  stop();
+  if(idx===tab.steps.length-1){const n=TABS[TABS.indexOf(tab)+1];if(n)openTab(n);return}
+  go(idx+1);
+});
+$('back').addEventListener('click',()=>{stop();go(idx-1)});
+$('restart').addEventListener('click',()=>{stop();openTab(tab,false)});
+$('play').addEventListener('click',()=>{
+  if(playing){stop();return}
+  playing=true;$('play').textContent='Pause';
+  if(idx===tab.steps.length-1)go(0,false);
+  schedule();
+});
+document.addEventListener('keydown',e=>{
+  if(e.altKey||e.ctrlKey||e.metaKey)return;
+  if(e.key==='ArrowRight'){e.preventDefault();$('next').click()}
+  if(e.key==='ArrowLeft'){e.preventDefault();if(!$('back').disabled)$('back').click()}
+});
+$('cmp').innerHTML=[
+ ['type-1','add()','add()','add()','Nothing','Nothing','add();'],
+ ['type-2','main','add()','add()','2 copies','Nothing','add(num1, num2);'],
+ ['type-3','main','add()','main','2 copies','1 value by return','sum = add(num1, num2);'],
+ ['type-4','add()','add()','main','Nothing','1 value by return','sum = add();'],
+ ['type-5','add()','add()','main','sum by reference','Written directly into sum','add(sum);']
+].map(r=>{const t=TABS.find(x=>x.id===r[0]);return `<tr><td><button class="go" type="button" data-id="${r[0]}">${t.proto.replace(/&/g,'&amp;')}</button></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td><code>${r[6]}</code></td></tr>`}).join('');
+$('cmp').addEventListener('click',e=>{const b=e.target.closest('.go');if(!b)return;openTab(TABS.find(t=>t.id===b.dataset.id));$('tabs').scrollIntoView({behavior:reduce?'auto':'smooth'})});
+function fromHash(){const h=location.hash.slice(1);return TABS.find(t=>t.id===h)}
+addEventListener('hashchange',()=>{const t=fromHash();if(t&&t!==tab)openTab(t,false)});
+openTab(fromHash()||TABS[0],false);
+</script>
+
+</body></html>
