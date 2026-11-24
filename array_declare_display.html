@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Declaring Arrays</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+:root{
+  --bg:#f4f5f8; --paper:#ffffff; --ink:#152036; --muted:#5b6678; --line:#d9dee7;
+  --accent:#2551d9; --accent-soft:#e3eaff; --amber:#ffd45c; --amber-soft:#fff3cc;
+  --ok:#1f9d55; --ok-soft:#d9f5e4; --bad:#d63b3b; --code:#0f1a2e; --code-ink:#e3e9f5;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body)}
+body{min-height:100vh;display:flex;flex-direction:column}
+header.top{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;font-size:14px;color:var(--muted)}
+header.top b{color:var(--ink)}
+main{flex:1;display:flex;justify-content:center;align-items:flex-start;padding:0 20px}
+.slide{width:100%;max-width:1240px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:30px 36px 22px;display:flex;flex-direction:column;gap:16px;box-shadow:0 8px 30px rgba(21,32,54,.06)}
+.kicker{font:700 13px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:0}
+h1{font-size:36px;line-height:1.15;margin:2px 0 0}
+.idea{font-size:19px;line-height:1.45;color:var(--muted);margin:0;max-width:62ch}
+.idea b{color:var(--ink)}
+.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;align-items:start}
+.code{background:var(--code);color:var(--code-ink);border-radius:12px;padding:14px 0;font:16px/1.75 var(--f-mono);overflow-x:auto}
+.code .ln{padding:0 16px;white-space:pre;transition:background .25s}
+.code .ln i{display:inline-block;width:26px;color:#5d6d88;font-style:normal}
+.code .ln.cur{background:#1f3c8f;box-shadow:inset 4px 0 0 var(--amber)}
+.stage{display:grid;gap:14px;min-width:0}
+.trackwrap{overflow-x:auto;padding:4px 2px 2px}
+.track{position:relative}
+.track .slot,.track .cell{position:absolute;left:0;top:0;display:grid;place-items:center}
+.track .slot{border:2px solid var(--line);background:#fafbfd}
+.track .slot,.track .idx{transition:opacity .45s}
+.track .slot.hidden,.track .idx.hidden{opacity:0}
+.track .slot.unused{border-style:dashed;background:transparent}
+.track .slot.tempbox{border:2px dashed var(--accent);background:var(--accent-soft)}
+.track .cell{border:2px solid var(--ink);background:var(--paper);font:700 clamp(17px,2.2vw,22px) var(--f-mono);transition:transform .7s cubic-bezier(.3,.7,.2,1),opacity .45s,background .3s,box-shadow .3s;z-index:2}
+.track .cell.dim{color:#a3acbb;border-color:#b9c1ce}
+.track .cell.band{background:var(--accent-soft)}
+.track .cell.hi{background:var(--amber)}
+.track .cell.ok{background:var(--ok-soft);border-color:var(--ok);color:#0f6b38}
+.track .cell.cur{box-shadow:0 0 0 4px var(--accent);z-index:3}
+.track .cell.gone{opacity:0;transform-origin:center}
+.track.noanim .cell,.track.noanim .ptr{transition:none!important}
+.track .idx{position:absolute;font:13px var(--f-mono);color:var(--muted);text-align:center}
+.track .idx.used{color:var(--ink)}
+.track .tag{position:absolute;font:600 13px var(--f-body);color:var(--muted)}
+.track .ptr{position:absolute;left:0;top:0;text-align:center;font:700 15px var(--f-mono);color:var(--accent);transition:transform .45s ease;z-index:3}
+.track .ptr.off{opacity:0}
+.strip small{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.strip .row{display:flex;flex-wrap:wrap}
+.strip span{display:grid;text-align:center;min-width:44px;border:1px solid var(--line);margin:0 -1px -1px 0;background:var(--paper);transition:background .3s}
+.strip span b{font:700 14px var(--f-mono);padding:3px 2px}
+.strip span i{font:10px var(--f-mono);color:var(--muted);font-style:normal;padding-bottom:2px}
+.strip span.band{background:var(--accent-soft)}
+.strip span.cur{background:var(--amber)}
+.vars{display:flex;flex-wrap:wrap;gap:8px;min-height:32px}
+.vchip{border:1px solid var(--line);border-radius:999px;padding:3px 12px;font:15px var(--f-mono);background:var(--bg)}
+.vchip b{color:var(--accent)}
+.vchip.chg{animation:pulse .9s ease}
+@keyframes pulse{0%{background:var(--amber);transform:scale(1.12)}100%{transform:scale(1)}}
+.console{background:var(--code);border-radius:10px;padding:8px 14px}
+.console small{font:600 12px var(--f-body);color:#8fa0bd;letter-spacing:.06em;text-transform:uppercase}
+.console pre{margin:4px 0 0;color:#9ef0c6;font:16px/1.5 var(--f-mono);min-height:24px;white-space:pre-wrap}
+.say{display:flex;gap:12px;align-items:flex-start;background:var(--bg);border-radius:12px;padding:14px 16px;font-size:19px;line-height:1.45;min-height:76px}
+.say .no{flex:none;font:700 13px var(--f-mono);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-top:2px;color:var(--muted)}
+.say code,.idea code,td code{font-family:var(--f-mono);font-size:.92em;background:var(--accent-soft);padding:1px 5px;border-radius:5px;color:var(--ink)}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.ctl .grp{display:flex;gap:8px;flex-wrap:wrap}
+button{font:600 15px var(--f-body);border:1.5px solid var(--accent);color:var(--accent);background:var(--paper);border-radius:10px;padding:8px 16px;cursor:pointer}
+button.primary{background:var(--accent);color:#fff}
+button:disabled{opacity:.35;cursor:default}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted)}
+footer.nav{display:flex;justify-content:center;align-items:center;gap:14px;padding:16px 20px 22px;flex-wrap:wrap}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dots button{width:30px;height:30px;padding:0;border-radius:50%;font:600 12px var(--f-mono);border-color:var(--line);color:var(--muted)}
+.dots button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+/* title and summary slides */
+.cover{display:grid;gap:22px;padding:30px 0 10px}
+.cover h1{font-size:54px}
+.cover .ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.cover .ops div{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg)}
+.cover .ops b{display:block;font-size:18px;margin-bottom:4px}
+.cover .ops span{color:var(--muted);font-size:15px}
+table.sum{border-collapse:collapse;width:100%;font-size:17px}
+table.sum th{text-align:left;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--line);padding:8px 10px}
+table.sum td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top}
+table.sum td:first-child{font-weight:700;white-space:nowrap}
+@media (max-width:900px){
+  .body{grid-template-columns:1fr}
+  h1{font-size:28px}.cover h1{font-size:38px}
+  .idea,.say{font-size:16px}
+  .slide{padding:20px 18px}
+  header.top{padding:12px 16px}
+}
+@media (prefers-reduced-motion:reduce){.track .cell,.track .ptr{transition:none}.vchip.chg{animation:none}}
+</style>
+</head>
+<body>
+<header class="top"><span><b>BITP 1113</b> · Declaring, filling and displaying arrays</span><span id="count"></span></header>
+<main><article class="slide" id="slide" aria-live="polite"></article></main>
+<footer class="nav">
+  <button id="prevSlide" aria-label="Previous slide">← Slide</button>
+  <div class="dots" id="dots"></div>
+  <button id="nextSlide" aria-label="Next slide">Slide →</button>
+</footer>
+<script>
+/* ============ Simulation: builds the list of steps for each operation ============ */
+function makeSim(layout, init){
+  let key = 0;
+  const cells = new Map();          // where -> {k, v, dim, from}
+  const S = {cells, n: layout.n, alloc: layout.alloc ?? Infinity, vars: {}, out: "", steps: []};
+  const flat = layout.type === "2d" ? init.flat() : init;
+  flat.forEach((v, i) => { if (v !== null) cells.set(i, {k: "c" + key++, v: v.v ?? v, dim: !!v.dim}); });
+  S.appear = (at, v = "?") => cells.set(at, {k: "c" + key++, v, from: "appear"});
+  S.set = (at, v) => cells.set(at, {k: "c" + key++, v, from: "drop"});
+  S.copy = (from, to) => { const s = cells.get(from); cells.set(to, {k: "c" + key++, v: s.v, from}); };
+  S.val = at => cells.get(at).v;
+  S.snap = (line, say, o = {}) => {
+    S.steps.push({line, say, n: S.n, alloc: S.alloc, ptr: o.ptr ?? null, hi: o.hi || [], ok: o.ok || [], band: o.band || null,
+      vars: {...S.vars}, out: S.out, cells: [...cells].map(([at, c]) => ({at, k: c.k, v: c.v, dim: c.dim, from: c.from}))});
+    cells.forEach(c => delete c.from);
+  };
+  return S;
+}
+const Z = v => ({v, dim: true});      // an unused element holding 0
+
+/* ============ The slides ============ */
+const SLIDES = [
+  {type: "cover"},
+  {kicker: "1-D · Declare", title: "Declaring a 1-D array", idea: "<code>data_type name[size];</code> reserves <b>size</b> elements side by side in memory. Until you store something, their values are unknown.",
+   code: ["const int SIZE = 5;", "int marks[SIZE];"],
+   layout: {type: "1d", cap: 5, alloc: 0}, init: [null, null, null, null, null],
+   build(s){ s.snap(1, "The program starts. No array exists yet.");
+     s.vars.SIZE = 5; s.snap(1, "<code>SIZE</code> is a named constant, 5. It will be the size declarator: it must be a constant greater than 0.");
+     s.snap(2, "<code>int marks[SIZE];</code> <b>int</b> is the data type of every element, <b>marks</b> is the name of the array, and <b>[SIZE]</b> says how many elements: 5.");
+     for (let i = 0; i < 5; i++){ s.appear(i); s.alloc = i + 1;
+       s.snap(2, i === 0 ? "<code>marks[0]</code> is reserved: the <b>first</b> element. Subscripts start at 0." : i === 4 ? "<code>marks[4]</code>: the <b>last</b> element. The last subscript is SIZE − 1 = 4." : `<code>marks[${i}]</code> is reserved, right next to the one before it.`, {hi: [i]}); }
+     s.snap(2, "5 elements × 4 bytes = <b>20 bytes</b>, in consecutive memory. The values are <b>?</b> (garbage) because nothing has been stored yet."); }},
+  {kicker: "1-D · Declare and initialise", title: "Giving values when you declare", idea: "Put the initial values in <b>braces</b>, separated by commas. Missing values are set to <b>0</b>.",
+   code: ["int marks[5] = {70, 85, 60};"],
+   layout: {type: "1d", cap: 5, alloc: 0}, init: [null, null, null, null, null],
+   build(s){ s.snap(1, "One statement declares the array and gives it values.");
+     for (let i = 0; i < 5; i++) s.appear(i); s.alloc = 5; s.snap(1, "First, 5 elements are reserved.");
+     [70, 85, 60].forEach((v, i) => { s.set(i, v); s.snap(1, `The ${["first", "second", "third"][i]} value in the braces, ${v}, goes into <code>marks[${i}]</code>.`, {hi: [i]}); });
+     s.set(3, 0); s.set(4, 0); s.snap(1, "There are only 3 values for 5 elements, so <code>marks[3]</code> and <code>marks[4]</code> are set to <b>0</b>.", {ok: [3, 4]});
+     s.snap(1, "Result: 70 85 60 0 0. (Without the size, <code>int marks[] = {70, 85, 60};</code> would make an array of only 3 elements.)"); }},
+  {kicker: "1-D · Input", title: "Filling the array with cin", idea: "A <b>for</b> loop reads one value into each element. The loop counter <code>i</code> is the subscript.",
+   code: ["int marks[5];", "cout << \"Enter 5 marks: \";", "for (int i = 0; i < 5; i++)", "    cin >> marks[i];"],
+   layout: {type: "1d", cap: 5, alloc: 0}, init: [null, null, null, null, null],
+   build(s){ for (let i = 0; i < 5; i++) s.appear(i); s.alloc = 5; s.snap(1, "5 elements are reserved; their values are unknown.");
+     s.out = "Enter 5 marks: "; s.snap(2, "The prompt is displayed.");
+     [70, 85, 60, 92, 75].forEach((v, i) => { s.vars.i = i; s.snap(3, `i = ${i}: <code>${i} &lt; 5</code>, so read one value.`, {ptr: i});
+       s.out += v + (i < 4 ? " " : "\n"); s.set(i, v); s.snap(4, `The user types ${v}. <code>cin &gt;&gt; marks[${i}]</code> stores it in element [${i}].`, {ptr: i, hi: [i]}); });
+     s.vars.i = 5; s.snap(3, "i = 5: <code>5 &lt; 5</code> is false, so the loop stops. Every element now has a value."); }},
+  {kicker: "1-D · Display", title: "Displaying every element", idea: "<code>cout &lt;&lt; marks;</code> does not show the values. Display them <b>one element at a time</b> in a loop.",
+   code: ["int marks[5] = {70, 85, 60, 92, 75};", "for (int i = 0; i < 5; i++)", "    cout << \"marks[\" << i << \"] = \" << marks[i] << endl;"],
+   layout: {type: "1d", cap: 5}, init: [70, 85, 60, 92, 75],
+   build(s){ s.snap(1, "The array already holds five marks.");
+     for (let i = 0; i < 5; i++){ s.vars.i = i; s.snap(2, `i = ${i}.`, {ptr: i});
+       s.out += `marks[${i}] = ${s.val(i)}\n`; s.snap(3, `Displays <code>marks[${i}] = ${s.val(i)}</code>, then a new line.`, {ptr: i, hi: [i]}); }
+     s.vars.i = 5; s.snap(2, "i = 5: the loop stops after the last element, marks[4]."); }},
+  {kicker: "2-D · Declare", title: "Declaring a 2-D array", idea: "<code>data_type name[rows][columns];</code> reserves rows × columns elements. In memory they sit in <b>one block, row by row</b>.",
+   code: ["const int ROWS = 2, COLS = 3;", "int t[ROWS][COLS];"],
+   layout: {type: "2d", rows: 2, cols: 3, strip: true, alloc: 0}, init: [[null, null, null], [null, null, null]],
+   build(s){ s.snap(1, "No array exists yet.");
+     s.vars.ROWS = 2; s.vars.COLS = 3; s.snap(1, "Two named constants: 2 rows and 3 columns.");
+     s.snap(2, "<code>int t[ROWS][COLS];</code> The <b>first</b> size is the number of rows, the <b>second</b> is the number of columns.");
+     for (let i = 0; i < 6; i++){ const r = Math.floor(i / 3), c = i % 3; s.appear(i); s.alloc = i + 1;
+       s.snap(2, c === 0 ? `Row ${r} starts: <code>t[${r}][0]</code> is reserved.` : `<code>t[${r}][${c}]</code> is reserved${c === 2 ? `: row ${r} is complete` : ""}.`, {hi: [i], band: {row: r}}); }
+     s.snap(2, "2 × 3 = <b>6 elements</b> (24 bytes). Row 0 sits in memory first, then row 1. The values are unknown (?)."); }},
+  {kicker: "2-D · Declare and initialise", title: "Giving a 2-D array its values", idea: "Use <b>one pair of braces per row</b>. Missing values in a row are set to <b>0</b>.",
+   code: ["int t[2][3] = {{1, 2, 3},", "               {4, 5}};"],
+   layout: {type: "2d", rows: 2, cols: 3, strip: true, alloc: 0}, init: [[null, null, null], [null, null, null]],
+   build(s){ s.snap(1, "One statement declares the array and gives it values.");
+     for (let i = 0; i < 6; i++) s.appear(i); s.alloc = 6; s.snap(1, "First, 2 × 3 = 6 elements are reserved.");
+     [1, 2, 3].forEach((v, c) => { s.set(c, v); s.snap(1, `The first pair of braces is row 0: ${v} goes into <code>t[0][${c}]</code>.`, {hi: [c], band: {row: 0}}); });
+     [4, 5].forEach((v, c) => { s.set(3 + c, v); s.snap(2, `The second pair of braces is row 1: ${v} goes into <code>t[1][${c}]</code>.`, {hi: [3 + c], band: {row: 1}}); });
+     s.set(5, 0); s.snap(2, "Row 1 has only 2 values, so <code>t[1][2]</code> is set to <b>0</b>.", {ok: [5], band: {row: 1}}); }},
+  {kicker: "2-D · Input", title: "Filling a 2-D array with nested loops", idea: "The <b>outer</b> loop picks the row; the <b>inner</b> loop reads each column of that row.",
+   code: ["int t[2][3];", "for (int r = 0; r < 2; r++)", "    for (int c = 0; c < 3; c++)", "        cin >> t[r][c];"],
+   layout: {type: "2d", rows: 2, cols: 3, strip: true, alloc: 0}, init: [[null, null, null], [null, null, null]],
+   build(s){ for (let i = 0; i < 6; i++) s.appear(i); s.alloc = 6; s.snap(1, "6 elements are reserved; their values are unknown.");
+     const inp = [7, 3, 9, 4, 8, 1];
+     for (let r = 0; r < 2; r++){ s.vars.r = r; delete s.vars.c; s.snap(2, `Outer loop: row ${r}.`, {band: {row: r}});
+       for (let c = 0; c < 3; c++){ s.vars.c = c; const v = inp[r * 3 + c]; s.out += v + (c < 2 ? " " : "\n"); s.set(r * 3 + c, v);
+         s.snap(4, `The user types ${v}: <code>cin &gt;&gt; t[${r}][${c}]</code>.`, {ptr: r * 3 + c, band: {row: r}}); }
+       s.vars.c = 3; s.snap(3, `c = 3: the inner loop ends; row ${r} is full.`, {band: {row: r}}); }
+     s.vars.r = 2; delete s.vars.c; s.snap(2, "r = 2: the outer loop ends. The values went in row by row, in memory order."); }},
+  {kicker: "2-D · Display", title: "Displaying a 2-D array as a table", idea: "Display a space after each value, and <code>endl</code> after each <b>row</b> (after the inner loop).",
+   code: ["int t[2][3] = {{1, 2, 3}, {4, 5, 6}};", "for (int r = 0; r < 2; r++)", "{", "    for (int c = 0; c < 3; c++)", "        cout << t[r][c] << \" \";", "    cout << endl;", "}"],
+   layout: {type: "2d", rows: 2, cols: 3, strip: true}, init: [[1, 2, 3], [4, 5, 6]],
+   build(s){ s.snap(1, "The array holds two rows of three values.");
+     for (let r = 0; r < 2; r++){ s.vars.r = r; delete s.vars.c; s.snap(2, `Outer loop: row ${r}.`, {band: {row: r}});
+       for (let c = 0; c < 3; c++){ s.vars.c = c; s.out += s.val(r * 3 + c) + " "; s.snap(5, `Display <code>t[${r}][${c}]</code> = ${s.val(r * 3 + c)}, then a space.`, {ptr: r * 3 + c, band: {row: r}}); }
+       delete s.vars.c; s.out += "\n"; s.snap(6, "<code>cout &lt;&lt; endl;</code> ends the row, so the next row starts on a new line.", {band: {row: r}}); }
+     s.vars.r = 2; s.snap(2, "Done: the console shows the array as a table of 2 rows and 3 columns."); }},
+  {type: "summary"}
+];
+
+/* ============ Rendering ============ */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+let cur = 0, step = 0, timer = null, nodes = new Map(), geo = null;
+SLIDES.forEach(sl => { if (sl.build){ const s = makeSim(sl.layout, sl.init); sl.build(s); sl.steps = s.steps; } });
+
+function geometry(L){
+  const narrow = window.innerWidth < 700;
+  if (L.type === "2d"){ const CW = narrow ? 46 : 64, CH = narrow ? 40 : 52, OX = 40, OY = 24;
+    return {CW, CH, OX, OY, w: OX + L.cols * CW, h: OY + L.rows * CH, pos: at => ({x: OX + (at % L.cols) * CW, y: OY + Math.floor(at / L.cols) * CH})}; }
+  const CW = narrow ? (L.cap > 6 ? 37 : 46) : (L.cap > 6 ? 64 : 76), CH = narrow ? 44 : 62;
+  const tempY = CH + 64;
+  return {CW, CH, OX: 0, OY: 0, w: Math.max(L.cap * CW, 3 * CW + 90), h: CH + 52 + (L.temp ? CH + 22 : 0),
+    pos: at => at === "temp" ? {x: 2 * CW, y: tempY} : {x: at * CW, y: 0}};
+}
+function place(el, p){ el.style.transform = `translate(${p.x}px, ${p.y}px)`; }
+
+function drawSlide(){
+  stopPlay(); nodes = new Map();
+  const sl = SLIDES[cur], el = $("#slide");
+  $("#count").textContent = `${cur + 1} / ${SLIDES.length}`;
+  document.querySelectorAll("#dots button").forEach((b, i) => b.classList.toggle("on", i === cur));
+  $("#prevSlide").disabled = cur === 0; $("#nextSlide").disabled = cur === SLIDES.length - 1;
+  history.replaceState(null, "", "#" + (cur + 1));
+  if (sl.type === "cover"){
+    el.innerHTML = `<div class="cover"><p class="kicker">BITP 1113 · Arrays</p><h1>Declaring, filling<br>and displaying arrays</h1>
+      <p class="idea">Watch memory being reserved when an array is declared, values going in, and the loop that displays them. Press <b>Next</b> (or the → key) to run one step; at the last step, → goes to the next slide.</p>
+      <div class="ops">${[["1-D: declare", "reserve the elements"], ["1-D: initialise", "values in braces"], ["1-D: input", "cin in a loop"], ["1-D: display", "cout in a loop"], ["2-D: declare", "rows × columns"], ["2-D: initialise", "braces per row"], ["2-D: input", "nested loops"], ["2-D: display", "a table, row by row"]].map(([a, b]) => `<div><b>${a}</b><span>${b}</span></div>`).join("")}</div>
+      <p class="hint">Keys: → or Space next · ← back · P play/pause · F full screen</p></div>`;
+    return;
+  }
+  if (sl.type === "summary"){
+    el.innerHTML = `<p class="kicker">Summary</p><h1>1-D and 2-D side by side</h1>
+      <table class="sum"><thead><tr><th></th><th>1-D</th><th>2-D</th></tr></thead><tbody>
+      <tr><td>Declare</td><td><code>int a[5];</code></td><td><code>int t[2][3];</code></td></tr>
+      <tr><td>Initialise</td><td><code>int a[5] = {70, 85, 60};</code></td><td><code>int t[2][3] = {{1, 2, 3}, {4, 5}};</code></td></tr>
+      <tr><td>Input</td><td><code>for (i = 0; i &lt; 5; i++) cin &gt;&gt; a[i];</code></td><td>Nested loops: <code>cin &gt;&gt; t[r][c];</code></td></tr>
+      <tr><td>Display</td><td><code>for (i = 0; i &lt; 5; i++) cout &lt;&lt; a[i] &lt;&lt; " ";</code></td><td>Nested loops, with <code>endl</code> after each row</td></tr>
+      <tr><td>Remember</td><td>Subscripts run from 0 to size − 1. The size must be a constant.</td><td>Elements = rows × columns, stored row by row. Missing values are 0.</td></tr>
+      </tbody></table>`;
+    return;
+  }
+  geo = geometry(sl.layout);
+  el.innerHTML = `<div><p class="kicker">${sl.kicker}</p><h1>${sl.title}</h1></div><p class="idea">${sl.idea}</p>
+    <div class="body"><div class="code" id="code">${sl.code.map((t, i) => `<div class="ln"><i>${i + 1}</i>${esc(t) || " "}</div>`).join("")}</div>
+    <div class="stage"><div class="trackwrap"><div class="track noanim" id="track" style="width:${geo.w}px;height:${geo.h}px"></div></div>
+      ${sl.layout.strip ? `<div class="strip" id="strip"></div>` : ""}
+      <div class="vars" id="vars"></div><div class="console"><small>Console</small><pre id="out"></pre></div></div></div>
+    <div class="say" id="say"></div>
+    <div class="ctl"><div class="grp"><button id="back">◀ Back</button><button class="primary" id="next">Next ▶</button><button id="play">▶ Play</button><button id="restart">⟲ Restart</button></div>
+      <span class="hint">→ next · ← back · P play</span></div>`;
+  drawSlots(sl);
+  $("#back").onclick = () => go(-1); $("#next").onclick = () => go(1);
+  $("#play").onclick = togglePlay; $("#restart").onclick = () => { step = 0; drawStep(false); };
+  drawStep(false);
+}
+function drawSlots(sl){
+  const L = sl.layout, t = $("#track"); let h = "";
+  const cells = L.type === "2d" ? L.rows * L.cols : L.cap;
+  for (let i = 0; i < cells; i++){ const p = geo.pos(i); h += `<div class="slot" data-slot="${i}" style="width:${geo.CW}px;height:${geo.CH}px;transform:translate(${p.x}px,${p.y}px)"></div>`; }
+  if (L.type === "2d"){
+    for (let c = 0; c < L.cols; c++) h += `<div class="idx" data-c="${c}" style="left:${geo.OX + c * geo.CW}px;top:2px;width:${geo.CW}px">[${c}]</div>`;
+    for (let r = 0; r < L.rows; r++) h += `<div class="idx" data-r="${r}" style="left:0;top:${geo.OY + r * geo.CH + geo.CH / 2 - 9}px;width:${geo.OX - 6}px">[${r}]</div>`;
+  } else {
+    for (let i = 0; i < L.cap; i++) h += `<div class="idx" data-idx="${i}" style="left:${i * geo.CW}px;top:${geo.CH + 4}px;width:${geo.CW}px">[${i}]</div>`;
+    h += `<div class="ptr off" id="ptr" style="width:${geo.CW}px">▲<br>i</div>`;
+    if (L.temp){ const p = geo.pos("temp"); h += `<div class="slot tempbox" style="width:${geo.CW}px;height:${geo.CH}px;transform:translate(${p.x}px,${p.y}px)"></div><div class="tag" style="left:${p.x - 52}px;top:${p.y + geo.CH / 2 - 9}px">temp</div>`; }
+  }
+  t.innerHTML = h;
+}
+function drawStep(animate){
+  const sl = SLIDES[cur], st = sl.steps[step], prev = step > 0 ? sl.steps[step - 1] : null, t = $("#track"), L = sl.layout;
+  t.classList.toggle("noanim", !animate);
+  const seen = new Set();
+  const band = at => st.band && ((st.band.row !== undefined && Math.floor(at / L.cols) === st.band.row) || (st.band.col !== undefined && at % L.cols === st.band.col));
+  for (const c of st.cells){
+    seen.add(c.k);
+    const target = geo.pos(c.at); let n = nodes.get(c.k);
+    if (!n){
+      n = document.createElement("div"); n.className = "cell"; n.style.width = geo.CW + "px"; n.style.height = geo.CH + "px";
+      n.textContent = c.v; t.appendChild(n); nodes.set(c.k, n);
+      if (animate && c.from !== undefined){
+        const start = c.from === "drop" || c.from === "appear" ? {x: target.x, y: target.y - (c.from === "drop" ? 80 : 0)} : geo.pos(c.from);
+        n.style.transition = "none"; place(n, start); if (c.from === "drop" || c.from === "appear") n.style.opacity = "0";
+        if (c.from === "appear") n.style.transform += " scale(.3)";
+        n.getBoundingClientRect(); n.style.transition = "";
+      }
+    }
+    n.classList.toggle("dim", !!c.dim);
+    n.classList.toggle("hi", st.hi.includes(c.at)); n.classList.toggle("ok", st.ok.includes(c.at));
+    n.classList.toggle("cur", st.ptr === c.at && L.type === "2d");
+    n.classList.toggle("band", typeof c.at === "number" && L.type === "2d" && !!band(c.at));
+    place(n, target); n.style.opacity = "1"; n.style.zIndex = c.from !== undefined && animate ? "4" : "";
+  }
+  for (const [k, n] of nodes) if (!seen.has(k)){
+    nodes.delete(k);
+    if (animate){ n.classList.add("gone"); n.style.zIndex = "1"; setTimeout(() => n.remove(), 500); } else n.remove();
+  }
+  t.querySelectorAll(".slot[data-slot]").forEach(x => x.classList.toggle("hidden", +x.dataset.slot >= st.alloc));
+  t.querySelectorAll(".idx[data-idx]").forEach(x => x.classList.toggle("hidden", +x.dataset.idx >= st.alloc));
+  t.querySelectorAll(".idx[data-c]").forEach(x => x.classList.toggle("hidden", st.alloc <= +x.dataset.c));
+  t.querySelectorAll(".idx[data-r]").forEach(x => x.classList.toggle("hidden", st.alloc <= +x.dataset.r * L.cols));
+  if (L.type !== "2d"){
+    const ptr = $("#ptr"); ptr.classList.toggle("off", st.ptr === null);
+    if (st.ptr !== null) place(ptr, {x: geo.pos(st.ptr).x, y: geo.CH + 22});
+    t.querySelectorAll(".slot[data-slot]").forEach(s => s.classList.toggle("unused", st.n !== undefined && +s.dataset.slot >= st.n));
+    t.querySelectorAll(".idx[data-idx]").forEach(s => s.classList.toggle("used", st.n === undefined || +s.dataset.idx < st.n));
+  }
+  if (L.strip){
+    const vals = Array(L.rows * L.cols); st.cells.forEach(c => vals[c.at] = c.v);
+    $("#strip").innerHTML = `<small>In memory: one block, row by row</small><div class="row">${vals.slice(0, Math.min(vals.length, st.alloc)).map((v, i) => `<span class="${st.ptr === i || st.hi.includes(i) || st.ok.includes(i) ? "cur" : band(i) ? "band" : ""}"><b>${v}</b><i>[${Math.floor(i / L.cols)}][${i % L.cols}]</i></span>`).join("")}</div>`;
+  }
+  if (!animate) requestAnimationFrame(() => t.classList.remove("noanim"));
+  document.querySelectorAll("#code .ln").forEach((l, i) => l.classList.toggle("cur", i + 1 === st.line));
+  $("#vars").innerHTML = Object.entries(st.vars).map(([n, v]) => `<span class="vchip${animate && prev && prev.vars[n] !== v ? " chg" : ""}">${esc(n)} = <b>${esc(v)}</b></span>`).join("");
+  $("#out").textContent = st.out;
+  $("#say").innerHTML = `<span class="no">${step + 1} / ${sl.steps.length}</span><span>${st.say}</span>`;
+  $("#back").disabled = step === 0 && cur === 0;
+  $("#next").textContent = step === sl.steps.length - 1 ? "Next slide ▶" : "Next ▶";
+  $("#next").disabled = step === sl.steps.length - 1 && cur === SLIDES.length - 1;
+}
+function go(d){
+  const sl = SLIDES[cur];
+  if (!sl.steps){ return changeSlide(d, d > 0 ? 0 : -1); }
+  if (d > 0){ if (step < sl.steps.length - 1){ step++; drawStep(true); } else changeSlide(1, 0); }
+  else { if (step > 0){ step--; drawStep(false); } else changeSlide(-1, -1); }
+}
+function changeSlide(d, at){
+  const n = cur + d; if (n < 0 || n >= SLIDES.length) return;
+  cur = n; const s = SLIDES[cur].steps; step = s ? (at === -1 ? s.length - 1 : 0) : 0; drawSlide();
+}
+function stopPlay(){ clearInterval(timer); timer = null; const b = $("#play"); if (b) b.textContent = "▶ Play"; }
+function togglePlay(){
+  if (timer) return stopPlay();
+  const sl = SLIDES[cur]; if (!sl.steps) return;
+  if (step === sl.steps.length - 1){ step = 0; drawStep(false); }
+  $("#play").textContent = "❚❚ Pause";
+  timer = setInterval(() => { if (step >= SLIDES[cur].steps.length - 1) return stopPlay(); step++; drawStep(true); }, 1600);
+}
+document.addEventListener("keydown", e => {
+  if (e.target.closest && e.target.closest("button") && (e.key === " " || e.key === "Enter")) return;
+  if (["ArrowRight", " ", "PageDown"].includes(e.key)){ e.preventDefault(); stopPlay(); go(1); }
+  else if (["ArrowLeft", "PageUp"].includes(e.key)){ e.preventDefault(); stopPlay(); go(-1); }
+  else if (e.key === "p" || e.key === "P") togglePlay();
+  else if (e.key === "f" || e.key === "F"){ if (!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+  else if (e.key === "Home"){ cur = 0; step = 0; drawSlide(); }
+});
+$("#dots").innerHTML = SLIDES.map((_, i) => `<button aria-label="Slide ${i + 1}">${i + 1}</button>`).join("");
+document.querySelectorAll("#dots button").forEach((b, i) => b.onclick = () => { cur = i; step = 0; drawSlide(); });
+$("#prevSlide").onclick = () => changeSlide(-1, 0); $("#nextSlide").onclick = () => changeSlide(1, 0);
+let lastNarrow = window.innerWidth < 700;
+window.addEventListener("resize", () => { const n = window.innerWidth < 700; if (n !== lastNarrow){ lastNarrow = n; const k = step; drawSlide(); step = k; if (SLIDES[cur].steps) drawStep(false); } });
+const h = parseInt(location.hash.slice(1)); if (h >= 1 && h <= SLIDES.length) cur = h - 1;
+drawSlide();
+</script>
+</body>
+</html>
